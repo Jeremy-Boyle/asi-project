@@ -1,0 +1,11 @@
+#! ┌───────────────────────────────────────────────────────────────────┐
+#! ├ WARNING: Do not put decryption rules in here!                     │
+#! │          kapp-controller will ignore this file, so it's important │
+#! │          to only include encryption rules.                        │
+#! │───────────────────────────────────────────────────────────────────│
+#! ├ NOTE: Creation rules are evaluated sequentially; first match wins.│
+#! └───────────────────────────────────────────────────────────────────┘
+creation_rules:
+  #! e.g. platform-ops
+  - path_regex: \.platform-ops\.sops\.yaml$
+    pgp: '6827F0BDB77701A2E8D369810F2AEB25171A5459'

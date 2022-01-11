@@ -1,0 +1,28 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: kappctrl.k14s.io/v1alpha1
+kind: App
+metadata:
+  name: #@ "{}-calico".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+spec:
+  cluster:
+    kubeconfigSecretRef:
+      name: #@ "{}-kubeconfig".format(data.values.cluster_name)
+      key: value
+  fetch:
+  - git:
+      url: https://github.com/Jeremy-Boyle/simu8s-deployment
+      ref: origin/master
+      secretRef:
+        name: github-token
+  template:
+  - ytt:
+      ignoreUnknownComments: true
+      paths:
+      - deploy/apps/calico
+  deploy:
+  - kapp:
+      rawOptions:
+      - --wait-timeout=5m
+      - --diff-changes=true

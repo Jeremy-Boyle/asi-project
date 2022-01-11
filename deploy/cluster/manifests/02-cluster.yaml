@@ -1,0 +1,42 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: Cluster
+metadata:
+  name: #@ data.values.cluster_name
+  namespace: #@ data.values.namespace
+spec:
+  clusterNetwork:
+    pods:
+      cidrBlocks:
+      - 10.244.0.0/16
+    serviceDomain: cluster.local
+  controlPlaneRef:
+    apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+    kind: KubeadmControlPlane
+    name: #@ "{}-control-plane".format(data.values.cluster_name)
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+    kind: OpenStackCluster
+    name: #@ data.values.cluster_name
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: OpenStackCluster
+metadata:
+  name: #@ data.values.cluster_name
+  namespace: #@ data.values.namespace
+  labels:
+    cluster.x-k8s.io/cluster-name: #@ data.values.cluster_name
+spec:
+  allowAllInClusterTraffic: false
+  disableAPIServerFloatingIP: #@ data.values.network.disable_public_ip
+  cloudName: openstack
+  dnsNameservers:
+  - 8.8.8.8
+  externalNetworkId: #@ data.values.network.id
+  identityRef:
+    kind: Secret
+    name: #@ "{}-cloud-config".format(data.values.cluster_name)
+  managedAPIServerLoadBalancer: #@ data.values.network.api_loadbalancer
+  managedSecurityGroups: true
+  nodeCidr: #@ data.values.network.cidr

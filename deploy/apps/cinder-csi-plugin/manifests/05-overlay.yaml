@@ -1,0 +1,57 @@
+#@ load("@ytt:overlay", "overlay")
+#@ load("@ytt:data", "data")
+
+#@overlay/match by=overlay.all
+#@overlay/match by=overlay.subset({ "kind": "DaemonSet", "metadata": { "name": "csi-cinder-nodeplugin" } }),expects="1+"
+---
+spec:
+  template:
+    spec:
+      containers:
+      #@overlay/match by="name"
+      - name: cinder-csi-plugin
+        volumeMounts:
+        #@overlay/match by="name"
+        #@overlay/replace
+        - name: secret-cinderplugin
+          mountPath: /etc/config/cloud.conf
+          mountPropagation: "HostToContainer"
+      volumes:
+      #@overlay/match by="name"
+      #@overlay/replace
+      - name: secret-cinderplugin
+        hostPath:
+          path: /etc/kubernetes/cloud.conf
+          type: File
+#@overlay/match by=overlay.all
+#@overlay/match by=overlay.subset({ "kind": "Deployment", "metadata": { "name": "csi-cinder-controllerplugin" }}),expects="1+"
+---
+spec:
+  template:
+    spec:
+      containers:
+      #@overlay/match by="name"
+      - name: cinder-csi-plugin
+        volumeMounts:
+        #@overlay/match by="name"
+        #@overlay/replace
+        - name: secret-cinderplugin
+          mountPath: /etc/config/cloud.conf
+          mountPropagation: "HostToContainer"
+      volumes:
+      #@overlay/match by="name"
+      #@overlay/replace
+      - name: secret-cinderplugin
+        hostPath:
+          path: /etc/kubernetes/cloud.conf
+          type: File
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+  name: csi-sc-cinderplugin
+provisioner: cinder.csi.openstack.org
+reclaimPolicy: Delete
+volumeBindingMode: Immediate

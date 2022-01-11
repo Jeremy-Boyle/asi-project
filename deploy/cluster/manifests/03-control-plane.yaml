@@ -1,0 +1,81 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:base64", "base64")
+
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+kind: KubeadmControlPlane
+metadata:
+  name: #@ "{}-control-plane".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+spec:
+  kubeadmConfigSpec:
+    clusterConfiguration:
+      apiServer:
+        extraArgs:
+          cloud-provider: external
+        extraVolumes:
+        - hostPath: /etc/kubernetes/cloud.conf
+          mountPath: /etc/kubernetes/cloud.conf
+          name: cloud
+          readOnly: true
+      controllerManager:
+        extraArgs:
+          cloud-provider: external
+        extraVolumes:
+        - hostPath: /etc/kubernetes/cloud.conf
+          mountPath: /etc/kubernetes/cloud.conf
+          name: cloud
+          readOnly: true
+        - hostPath: /etc/certs/cacert
+          mountPath: /etc/certs/cacert
+          name: cacerts
+          readOnly: true
+      imageRepository: k8s.gcr.io
+    files:
+    - content: #@ base64.encode(data.values.kubernetes.cloud_config)
+      encoding: base64
+      owner: root
+      path: /etc/kubernetes/cloud.conf
+      permissions: "0600"
+    - content: #@ base64.encode(data.values.openstack.ca)
+      encoding: base64
+      owner: root
+      path: /etc/certs/cacert
+      permissions: "0600"
+    initConfiguration:
+      nodeRegistration:
+        kubeletExtraArgs:
+            cloud-provider: external
+        name: '{{ local_hostname }}'
+    joinConfiguration:
+      nodeRegistration:
+        kubeletExtraArgs:
+            cloud-provider: external
+        name: '{{ local_hostname }}'
+  machineTemplate:
+    infrastructureRef:
+      apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+      kind: OpenStackMachineTemplate
+      name: #@ "{}-control-plane".format(data.values.cluster_name)
+  replicas: 1
+  version: #@ data.values.k8s.version
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: OpenStackMachineTemplate
+metadata:
+  name: #@ "{}-control-plane".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+spec:
+  template:
+    spec:
+      cloudName: openstack
+      flavor:  #@ data.values.instance_type.control_plane
+      identityRef:
+        kind: Secret
+        name: #@ "{}-cloud-config".format(data.values.cluster_name)
+      image: #@ data.values.image.name
+      sshKeyName: #@ data.values.ssh_key.name
+      rootVolume:
+        diskSize: #@ data.values.image.disk_size
+        sourceType: image
+        sourceUUID: #@ data.values.image.image_uuid

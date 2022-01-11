@@ -1,0 +1,40 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:yaml", "yaml")
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cert-manager-helm-values
+  namespace: #@ data.values.namespace
+stringData:
+  values.yaml: 'installCRDs: true'
+---
+apiVersion: kappctrl.k14s.io/v1alpha1
+kind: App
+metadata:
+  name: #@ "{}-cert-manager".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+spec:
+  cluster:
+    kubeconfigSecretRef:
+      name: #@ "{}-kubeconfig".format(data.values.cluster_name)
+      key: value
+  fetch:
+  - helmChart:
+      name: cert-manager
+      repository:
+        url: https://charts.bitnami.com/bitnami
+      version: "0.1.29"
+
+  template:
+  - helmTemplate:
+      name: cert-manager
+      namespace: cert-manager
+      valuesFrom:
+      - secretRef:
+          name: cert-manager-helm-values
+  deploy:
+  - kapp:
+      rawOptions:
+      - --wait-timeout=5m
+      - --diff-changes=true

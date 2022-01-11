@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kapp-controller-clusteradmin
+  namespace: kapp-controller
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: kapp-controller-clusteradmin
+subjects:
+- kind: ServiceAccount
+  name: kapp-controller-clusteradmin
+  namespace: kapp-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin

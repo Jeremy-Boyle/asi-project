@@ -1,0 +1,78 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:base64", "base64")
+
+#@ def label_worker():
+- kubectl --kubeconfig /etc/kubernetes/kubelet.conf label node {{ local_hostname }} node-role.kubernetes.io/worker= --overwrite=true
+#@ end
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: MachineDeployment
+metadata:
+  name: #@ "{}-md".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+spec:
+  clusterName: #@ data.values.cluster_name
+  replicas: 1
+  selector:
+    matchLabels:
+      cluster.x-k8s.io/cluster-name: #@ data.values.cluster_name
+  template:
+    spec:
+      bootstrap:
+        configRef:
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+          kind: KubeadmConfigTemplate
+          name: #@ "{}-md".format(data.values.cluster_name)
+      clusterName: #@ data.values.cluster_name
+      failureDomain: nova
+      infrastructureRef:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+        kind: OpenStackMachineTemplate
+        name: #@ "{}-md".format(data.values.cluster_name)
+      version: #@ data.values.k8s.version
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: OpenStackMachineTemplate
+metadata:
+  name: #@ "{}-md".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+spec:
+  template:
+    spec:
+      cloudName: openstack
+      flavor:  #@ data.values.instance_type.worker_node
+      identityRef:
+        kind: Secret
+        name: #@ "{}-cloud-config".format(data.values.cluster_name)
+      image: #@ data.values.image.name
+      sshKeyName: #@ data.values.ssh_key.name
+      rootVolume:
+        diskSize: #@ data.values.image.disk_size
+        sourceType: image
+        sourceUUID: #@ data.values.image.image_uuid
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+kind: KubeadmConfigTemplate
+metadata:
+  name: #@ "{}-md".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+spec:
+  template:
+    spec:
+      files:
+      - content: #@ base64.encode(data.values.kubernetes.cloud_config)
+        encoding: base64
+        owner: root
+        path: /etc/kubernetes/cloud.conf
+        permissions: "0600"
+      - content: #@ base64.encode(data.values.openstack.ca)
+        encoding: base64
+        owner: root
+        path: /etc/certs/cacert
+        permissions: "0600"
+      joinConfiguration:
+        nodeRegistration:
+          kubeletExtraArgs:
+            cloud-provider: external
+          name: '{{ local_hostname }}'
+      postKubeadmCommands: #@ label_worker()
