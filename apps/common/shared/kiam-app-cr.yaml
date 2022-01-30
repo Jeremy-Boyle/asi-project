@@ -1,0 +1,132 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:yaml", "yaml")
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kiam-helm-values
+  namespace: #@ data.values.namespace
+stringData:
+  values.yaml: |
+    agent:
+      tlsSecret: kiam-agent-tls
+      tlsCerts:
+        certFileName: tls.crt
+        keyFileName: tls.key
+        caFileName: ca.crt
+      iptables: true
+      containerSecurityContext:
+        runAsNonRoot: false
+        runAsUser: 0
+        #@overlay/replace
+        seLinuxOptions:
+          user: system_u
+          role: system_r
+          type: spc_t
+          level: s0
+      podSecurityContext:
+        fsGroup: 0
+      metrics:
+        enabled: true
+      gatewayTimeoutCreation: 5s
+
+    server:
+      resourceType: deployment
+      sessionDuration: 30m
+      replicaCount: 3
+      sslCertHostPath: /etc/ssl/certs
+      containerSecurityContext:
+        runAsNonRoot: false
+        runAsUser: 0
+        #@overlay/replace
+        seLinuxOptions:
+          user: system_u
+          role: system_r
+          type: spc_t
+          level: s0
+      podSecurityContext:
+        fsGroup: 0
+      extraArgs:
+        region: $(AWS_REGION)
+      extraEnvVars:
+      - name: AWS_REGION
+        value: us-gov-east-1
+      - name: AWS_DEFAULT_REGION
+        value: us-gov-east-1
+
+      tlsSecret: kiam-server-tls
+      tlsCerts:
+        certFileName: tls.crt
+        keyFileName: tls.key
+        caFileName: ca.crt
+      gatewayTimeoutCreation: 5s
+      assumeRoleArn: kiam-server.cluster-api-provider-aws.platform-ops.com
+      roleBaseArn: ""
+      dnsPolicy: Default
+      metrics:
+        enabled: true
+      #@overlay/replace
+      nodeSelector:
+        node-role.kubernetes.io/master: ""
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        effect: "NoSchedule"
+        operator: "Exists"
+      #! these are automatically added to daemonsets, so we need them manually since deployment: https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/#taints-and-tolerations
+      - key: "node-role.kubernetes.io/not-ready"
+        effect: "NoSchedule"
+        operator: "Exists"
+      - key: "node-role.kubernetes.io/unreachable"
+        effect: "NoSchedule"
+        operator: "Exists"
+      - key: "node-role.kubernetes.io/disk-pressure"
+        effect: "NoSchedule"
+        operator: "Exists"
+      - key: "node-role.kubernetes.io/memory-pressure"
+        effect: "NoSchedule"
+        operator: "Exists"
+      - key: "node-role.kubernetes.io/unschedulable"
+        effect: "NoSchedule"
+        operator: "Exists"
+      - key: "node-role.kubernetes.io/network-unavailable"
+        effect: "NoSchedule"
+        operator: "Exists"
+---
+apiVersion: kappctrl.k14s.io/v1alpha1
+kind: App
+metadata:
+  name: #@ "{}-kiam".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+spec:
+  cluster:
+    kubeconfigSecretRef:
+      name: #@ "{}-kubeconfig".format(data.values.cluster_name)
+      key: value
+  fetch:
+  - helmChart:
+      name: kiam
+      repository:
+        url: https://charts.bitnami.com/kiam
+      version: "0.4.1"
+  - git:
+      url: https://github.com/Jeremy-Boyle/asi-project
+      ref: origin/master
+      secretRef:
+        name: github-token
+  template:
+  - helmTemplate:
+      name: kiam
+      namespace: kiam
+      valuesFrom:
+      - secretRef:
+          name: kiam-helm-values
+  - ytt:
+      ignoreUnknownComments: true
+      paths:
+      - '-'
+      - apps/kiam/manifests/overlay.yaml
+  deploy:
+  - kapp:
+      rawOptions:
+      - --wait-timeout=5m
+      - --diff-changes=true
