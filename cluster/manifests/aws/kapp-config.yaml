@@ -1,0 +1,117 @@
+#@ load("@ytt:overlay", "overlay")
+#@ load("@ytt:data", "data")
+---
+apiVersion: kapp.k14s.io/v1alpha1
+kind: Config
+minimumRequiredVersion: 0.34.0
+
+#! This section makes sure that kapp passes on the necessary kapp labels to derived Cluster API resources.
+#! Missing this section would mean that follow-on objects created by Cluster API would be missed in kapp inspect calls.
+templateRules:
+- resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: infrastructure.cluster.x-k8s.io/v1beta1, kind: AWSMachineTemplate}
+  affectedResources:
+    objectReferences:
+    - path: [spec, infrastructureTemplate]
+      resourceMatchers:
+      - apiVersionKindMatcher: {apiVersion: controlplane.cluster.x-k8s.io/v1beta1, kind: KubeadmControlPlane}
+    - path: [spec, template, spec, infrastructureRef]
+      resourceMatchers:
+      - apiVersionKindMatcher: {apiVersion: cluster.x-k8s.io/v1beta1, kind: MachineDeployment}
+- resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: bootstrap.cluster.x-k8s.io/v1beta1, kind: KubeadmConfigTemplate}
+  affectedResources:
+    objectReferences:
+    - path: [spec, template, spec, bootstrap, configRef]
+      resourceMatchers:
+      - apiVersionKindMatcher: {apiVersion: cluster.x-k8s.io/v1beta1, kind: MachineDeployment}
+
+#! This section handles the quasi-declarative nature of Cluster API, where sometimes spec fields are modified
+#!   rather than just the status section.  Missing this section would break clusters, as kapp will continually
+#!   revert fields populated by Cluster API, causing a viscious cycle of
+rebaseRules:
+
+#! cluster
+- path: [spec, controlPlaneEndpoint]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: cluster.x-k8s.io/v1beta1, kind: Cluster}
+
+#! aws cluster
+- paths:
+  - [spec, controlPlaneEndpoint]
+  - [metadata, labels, cluster.x-k8s.io/cluster-name]
+  - [spec, bastion, allowedCIDRBlocks]
+  - [spec, controlPlaneLoadBalancer, crossZoneLoadBalancing]
+  - [spec, controlPlaneLoadBalancer, scheme]
+  - [spec, networkSpec, vpc, id]
+  - [spec, networkSpec, vpc, internetGatewayId]
+  - [spec, networkSpec, vpc, availabilityZoneSelection]
+  - [spec, networkSpec, vpc, availabilityZoneUsageLimit]
+  - [spec, networkSpec, vpc, tags]
+  - [spec, networkSpec, cni, cniIngressRules]
+  - [spec, identityRef, kind]
+  - [spec, identityRef, name]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: infrastructure.cluster.x-k8s.io/v1beta1, kind: AWSCluster}
+
+#! Ignore any subnet changes since CAPA might be inconsistent in reporting.
+#! See https://github.com/kubernetes-sigs/cluster-api-provider-aws/issues/2797
+- paths:
+  - [spec, networkSpec, subnets]
+  - [spec, networkSpec, vpc, cidrBlock]
+  - [spec, controlPlaneLoadBalancer, subnets]
+  type: copy
+  sources: [existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: infrastructure.cluster.x-k8s.io/v1beta1, kind: AWSCluster}
+
+#! control plane
+- path: [metadata, labels, cluster.x-k8s.io/cluster-name]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: controlplane.cluster.x-k8s.io/v1beta1, kind: KubeadmControlPlane}
+
+#! machine dep
+- paths:
+  - [metadata, labels, cluster.x-k8s.io/cluster-name]
+  - [metadata, annotations, machinedeployment.clusters.x-k8s.io/revision]
+  - [spec, template, metadata, labels, cluster.x-k8s.io/cluster-name]
+  - [spec, template, metadata, labels, cluster.x-k8s.io/deployment-name]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: cluster.x-k8s.io/v1beta1, kind: MachineDeployment}
+
+#! Ignore Machine Deployments that are set to autoscaling
+- paths:
+  - [spec, replicas]
+  type: copy
+  sources: [existing]
+  resourceMatchers:
+  - hasAnnotationMatcher:
+      keys:
+      - cluster.k8s.io/cluster-api-autoscaler-node-group-min-size
+
+changeGroupBindings:
+- name: cluster.x-k8s.io/cluster-resources
+  resourceMatchers: &clusterresources
+  - apiGroupKindMatcher: {kind: Cluster, apiGroup: cluster.x-k8s.io}
+  - apiGroupKindMatcher: {kind: MachineDeployment, apiGroup: cluster.x-k8s.io}
+  - apiGroupKindMatcher: {kind: MachineHealthCheck, apiGroup: cluster.x-k8s.io}
+  - apiGroupKindMatcher: {kind: AWSCluster, apiGroup: infrastructure.cluster.x-k8s.io}
+  - apiGroupKindMatcher: {kind: AWSMachineTemplate, apiGroup: infrastructure.cluster.x-k8s.io}
+  - apiGroupKindMatcher: {kind: KubeadmControlPlane, apiGroup: controlplane.x-k8s.io}
+  - apiGroupKindMatcher: {kind: KubeadmConfigTemplate, apiGroup: bootstrap.cluster.x-k8s.io}
+
+changeRuleBindings:
+- rules:
+  #! [Note]: Make sure to delete the remote app CR prior to deleting the cluster
+  - "delete before deleting change-groups.kapp.k14s.io/pod-related"
+  - "delete before deleting cluster.x-k8s.io/cluster-resources"
+  resourceMatchers:
+  - apiGroupKindMatcher: {kind: App, apiGroup: kappctrl.k14s.io }

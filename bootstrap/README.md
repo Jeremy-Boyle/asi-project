@@ -1,5 +1,7 @@
 # Create Bootstrap Cluster
-## Provision two machine a Control plane and Worker Nodes (Ubuntu 20.04, Kubernetes: v1.23.1)
+## Provision one or two machines for the Control plane and Worker Nodes (Ubuntu 20.04, Kubernetes: v1.23.1)
+
+#### Note: For aws you will need to create a instance and attach the control plane iam
 
 1. ### Update the machine
     ```bash
@@ -79,13 +81,12 @@
 10. ### Calico
     Install calico on the bootstrap cluster otherwise you wont be able create pods on the bootstrap cluster
     ```bash
-    kubectl apply -f deploy/apps/calico
+    kubectl apply -f apps/calico/manifests
     ```
 
 11. ### ClusterApi
-    Install: https://github.com/kubernetes-sigs/cluster-api/releases/
     ```bash
-    clusterctl init --infrastructure openstack
+    kubectl apply -f apps/cluster-api/capi/manifests -f apps/cluster-api/capa/manifests -f apps/cluster-api/capo/manifests
     ```
 
 ## Bootstraping actual mgt cluster
