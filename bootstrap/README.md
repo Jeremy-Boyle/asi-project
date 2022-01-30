@@ -201,7 +201,7 @@
     ```bash
     kubectl --kubeconfig mgt-cluster.kubeconfig create ns cert-manager
 
-    kubectl --kubeconfig mgt-cluster.kubeconfig apply -f <(ytt --ignore-unknown-comments --data-value cluster_name=platform-ops-mgt --data-value namespace=platform-ops -f deploy/apps/common/cert-manager-app-cr.yaml)
+    kubectl --kubeconfig mgt-cluster.kubeconfig apply -f <(ytt --ignore-unknown-comments --data-value cluster_name=platform-ops-mgt --data-value namespace=platform-ops -f apps/common/shared/cert-manager-app-cr.yaml)
     ```
 8. ### Move kapp deploy config over to new cluster
     ```
@@ -218,5 +218,5 @@
 
 9. # Openstack Only
     ```
-    ytt -f deploy/apps/openstack-cloud-controller/manifests/ -f deploy/apps/cinder-csi-plugin/manifests | kapp deploy --kubeconfig mgt-cluster.kubeconfig -a platform-ops-mgt-openstack-controllers-ctl -n platform-ops -f - -y
+    ytt -f apps/openstack-cloud-controller/manifests/ -f apps/cinder-csi-plugin/manifests | kapp deploy --kubeconfig mgt-cluster.kubeconfig -a platform-ops-mgt-openstack-controllers-ctl -n platform-ops -f - -y
     ```
