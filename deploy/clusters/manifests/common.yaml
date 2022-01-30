@@ -1,4 +1,10 @@
 #@data/values
 ---
+#cluster_name: platform-ops-mgt
+#namespace: platform-ops
+
 k8s:
   version: v1.23.1
+
+image:
+  disk_size: 20

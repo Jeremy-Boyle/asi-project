@@ -43,6 +43,11 @@ metadata:
 spec:
   template:
     spec:
+      ami:
+        id: #@ data.values.aws.instance.ami_uuid
+      rootVolume:
+        size: #@ data.values.aws.image.size
+        encrypted: true
       iamInstanceProfile: control-plane.cluster-api-provider-aws.platform-ops.com
-      instanceType: #@ data.values.instance_type.control_plane
+      instanceType: #@ data.values.aws.instance.control_plane
       sshKeyName: default

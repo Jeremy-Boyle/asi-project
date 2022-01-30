@@ -1,0 +1,10 @@
+#@data/values
+---
+aws:
+  region: us-gov-east-1
+  ssh_key:
+    name: arch
+  instance:
+    ami_uuid: Ubuntu-20.04-kube-v1.23.1
+    control_plane: t3.large
+    worker_node: t3.large

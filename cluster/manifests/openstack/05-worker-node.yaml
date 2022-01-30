@@ -40,16 +40,16 @@ spec:
   template:
     spec:
       cloudName: openstack
-      flavor:  #@ data.values.instance_type.worker_node
+      flavor:  #@ data.values.openstack.instance.worker_node
       identityRef:
         kind: Secret
         name: #@ "{}-cloud-config".format(data.values.cluster_name)
-      image: #@ data.values.image.name
-      sshKeyName: #@ data.values.ssh_key.name
+      image: #@ data.values.openstack.instance.image_name
+      sshKeyName: #@ data.values.openstack.ssh_key.name
       rootVolume:
         diskSize: #@ data.values.image.disk_size
         sourceType: image
-        sourceUUID: #@ data.values.image.image_uuid
+        sourceUUID: #@ data.values.openstack.image.image_uuid
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
 kind: KubeadmConfigTemplate
@@ -60,10 +60,10 @@ spec:
   template:
     spec:
       files:
-      - content: #@ base64.encode(data.values.kubernetes.cloud_config)
+      - content: #@ base64.encode(data.values.openstack.kubernetes.cloud_config)
         encoding: base64
         owner: root
-        path: /etc/kubernetes/cloud.conf
+        path: /etc/kubernetes/openstack-cloud.conf
         permissions: "0600"
       - content: #@ base64.encode(data.values.openstack.ca)
         encoding: base64

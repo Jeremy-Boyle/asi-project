@@ -4,6 +4,8 @@ metadata:
   labels:
     cluster.x-k8s.io/provider: infrastructure-aws
   name: capa-system
+  annotations:
+    iam.amazonaws.com/permitted: .*
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -13368,8 +13370,6 @@ status:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  annotations:
-    ${AWS_CONTROLLER_IAM_ROLE/#arn/eks.amazonaws.com/role-arn: arn}
   labels:
     cluster.x-k8s.io/provider: infrastructure-aws
     control-plane: controller-manager
@@ -13754,17 +13754,6 @@ subjects:
   namespace: capa-system
 ---
 apiVersion: v1
-data:
-  credentials: ${AWS_B64ENCODED_CREDENTIALS}
-kind: Secret
-metadata:
-  labels:
-    cluster.x-k8s.io/provider: infrastructure-aws
-  name: capa-manager-bootstrap-credentials
-  namespace: capa-system
-type: Opaque
----
-apiVersion: v1
 kind: Service
 metadata:
   labels:
@@ -13795,7 +13784,7 @@ spec:
   template:
     metadata:
       annotations:
-        iam.amazonaws.com/role: ${AWS_CONTROLLER_IAM_ROLE:=""}
+        iam.amazonaws.com/role: capa-controller-manager.pod.platform-ops.com
       labels:
         cluster.x-k8s.io/provider: infrastructure-aws
         control-plane: capa-controller-manager
@@ -13805,7 +13794,7 @@ spec:
           preferredDuringSchedulingIgnoredDuringExecution:
           - preference:
               matchExpressions:
-              - key: ${K8S_CP_LABEL:=node-role.kubernetes.io/control-plane}
+              - key: node-role.kubernetes.io/control-plane
                 operator: Exists
             weight: 10
           - preference:
@@ -13861,9 +13850,6 @@ spec:
         secret:
           defaultMode: 420
           secretName: capa-webhook-service-cert
-      - name: credentials
-        secret:
-          secretName: capa-manager-bootstrap-credentials
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate

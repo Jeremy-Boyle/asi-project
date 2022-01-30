@@ -27,5 +27,6 @@ metadata:
   labels:
     cluster.x-k8s.io/cluster-name: #@ data.values.cluster_name
 spec:
-  region: us-gov-east-1
-  sshKeyName: default
+  controlPlaneLoadBalancer:
+    crossZoneLoadBalancing: true
+  region: #@ data.values.aws.region

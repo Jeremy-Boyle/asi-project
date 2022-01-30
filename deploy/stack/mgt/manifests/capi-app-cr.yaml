@@ -1,7 +1,7 @@
 apiVersion: kappctrl.k14s.io/v1alpha1
 kind: App
 metadata:
-  name: cluster-secrets
+  name: cluster-api
   namespace: kapp-controller
 spec:
   serviceAccountName: kapp-controller-clusteradmin
@@ -12,18 +12,12 @@ spec:
       secretRef:
         name: github-token
   template:
-  - sops:
-      pgp:
-        privateKeysSecretRef:
-          name: cluster-pgp-key
-      paths:
-      - deploy/cluster/secrets/aws/
-      - deploy/cluster/secrets/openstack/
   - ytt:
       ignoreUnknownComments: true
       paths:
-      - deploy/cluster/secrets/aws/
-      - deploy/cluster/secrets/openstack/
+      - apps/cluster-api/capi/manifests/
+      - apps/cluster-api/capa/manifests/
+      - apps/cluster-api/capo/manifests/
   deploy:
   - kapp:
       rawOptions:
