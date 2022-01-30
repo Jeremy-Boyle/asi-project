@@ -1,8 +1,9 @@
 # Create Bootstrap Cluster
-## Provision one or two machines for the Control plane and Worker Nodes (Ubuntu 20.04, Kubernetes: v1.23.1)
+## Provision one instance for the Control plane and one instance for the Worker Nodes (Ubuntu 20.04, Kubernetes: v1.23.1)
 
-#### Note: For aws you will need to create a instance and attach the control plane iam
+#### Note: For *AWS* you will need to create a instance and attach the control plane iam, and the node iam, additionally you must provision two instances for *AWS* due to kiam
 
+#### Note: For *openstack* you only need a single instance to bootstrap
 1. ### Update the machine
     ```bash
     sudo apt-get update
@@ -64,8 +65,9 @@
 - ### Worker Only
     ```bash
     sudo kubeadm join (get command from output on the control plane after the init process)
+    kubectl --kubeconfig /etc/kubernetes/kubelet.conf label node $HOST node-role.kubernetes.io/worker= --overwrite=true
     ```
-- ### For Single Node Bootstrap run
+- ### For Single Node Bootstrap run (Openstack ONLY)
     ```bash
     mkdir -p $HOME/.kube
     sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
@@ -83,12 +85,87 @@
     ```bash
     kubectl apply -f apps/calico/manifests
     ```
-
-11. ### ClusterApi
+11. ### Install Kiam on bootstrap cluster (AWS ONLY)
+    ```bash
+    helm repo add bitnami https://charts.bitnami.com/bitnami
+    kubectl create ns kiam
+    kubectl apply -f <(helm template kiam bitnami/kiam -f <(cat apps/common/shared/kiam-app-cr.yaml | yq e '.stringData."values.yaml"' - | yq -f extract e '' -) --dry-run | ytt --ignore-unknown-comments -f - -f apps/kiam/manifests/overlay.yaml)
+    ```
+12. ### ClusterApi
     ```bash
     kubectl apply -f apps/cluster-api/capi/manifests -f apps/cluster-api/capa/manifests -f apps/cluster-api/capo/manifests
     ```
-
+## Creating a AMI
+1. ### Pull down the AMI creation repo on to the AWS instance
+    ```bash
+    git clone https://github.com/Jeremy-Boyle/image-builder -b ubuntu-1804-dod-asi
+    cd image-builder/images/capi
+    ```
+2. ### Install prerequisites
+    ```bash
+    sudo apt update && sudo apt install make build-essential pip unzip awscli -y
+    export PATH=$PATH:~/.local/bin/
+    make deps-ami
+    ```
+3. ### Configure AWS config file for packer
+    ```bash
+    mkdir -p .aws
+    cat <<EOF | tee ~/.aws/config
+    [default]
+    region = us-gov-east-1
+    ```
+4. ### Configure packer
+    ```bash
+    sed -i 's/"ami_groups": "all"/"ami_groups": ""/g' packer/ami/packer.json
+    sed -i 's/"snapshot_groups": "all"/"snapshot_groups": ""/g' packer/ami/packer.json
+    sed -i 's/"encrypted": "false"/"encrypted": "true"/g' packer/ami/packer.json
+    sed -i 's/"kms_key_id": ""/"kms_key_id": "REPLACE_ME_WITH_KMS_ID"/g' packer/ami/packer.json
+    ```
+4. ### Build DOD AMI
+    ```bash
+    make build-ami-ubuntu-1804-dod
+    ```
+## Creating a Openstack qCow raw image
+1. ### Pull down the image builder repo on the instance / local machines *Note:* this wont work on amazon due to needing nested KVM
+    ```bash
+    git clone https://github.com/Jeremy-Boyle/image-builder -b ubuntu-1804-dod-asi
+    cd image-builder/images/capi
+    ```
+2. ### Install prerequisites
+    ```bash
+    sudo apt update && sudo apt install make build-essential pip unzip qemubuilder qemu-kvm libvirt-daemon-system libvirt-clients virtinst cpu-checker libguestfs-tools libosinfo-bin -y
+    export PATH=$PATH:~/.local/bin/
+    make deps-qemu
+    ```
+3. ### Setup KVM
+    ```bash
+    sudo usermod -a -G kvm $USER
+    sudo systemctl enable --now libvirtd
+    sudo systemctl enable --now virtlogd
+    sudo modprobe kvm
+    sudo modprobe kvm_intel
+    sudo chown root:kvm /dev/kvm
+    ```
+3. ### Build DOD image for openstack
+    ```bash
+    make build-qemu-ubuntu-1804-dod
+    ```
+4. ### SCP copy the iso image to the openstack server and import with openstack
+    ```bash
+    scp output/IMAGE_FOLDER/IMAGE_NAME USERNAME@IP_ADDRESS:~/DEST
+    openstack image create \
+        --container-format bare \
+        --disk-format qcow2 \
+        --property hw_disk_bus=scsi \
+        --property hw_scsi_model=virtio-scsi \
+        --property os_type=linux \
+        --property os_distro=ubuntu \
+        --property os_admin_user=ubuntu \
+        --property os_version='18.04' \
+        --public \
+        --file IMAGE_NAME \
+        IMAGE_NAME
+    ```
 ## Bootstraping actual mgt cluster
 
 1. ### Create the namespace and create the mgt cluster
@@ -110,7 +187,7 @@
     ```
 5. ### Install Kapp-controller on mgt cluster
     ```bash
-    kapp deploy --kubeconfig mgt-cluster.kubeconfig -a kapp-controller -n kube-system -f https://github.com/vmware-tanzu/carvel-kapp-controller/releases/latest/download/release.yml -f deploy/apps/kapp-controller/
+    kapp deploy --kubeconfig mgt-cluster.kubeconfig -a kapp-controller -n kube-system -f https://github.com/vmware-tanzu/carvel-kapp-controller/releases/latest/download/release.yml -f apps/kapp-controller/manifests
     ```
 6. ### Create mgt namespace
     ```bash

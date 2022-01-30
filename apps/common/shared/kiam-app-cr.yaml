@@ -110,7 +110,7 @@ spec:
       version: "0.4.1"
   - git:
       url: https://github.com/Jeremy-Boyle/asi-project
-      ref: origin/master
+      ref: origin/dev
       secretRef:
         name: github-token
   template:
