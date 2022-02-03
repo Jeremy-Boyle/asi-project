@@ -43,21 +43,21 @@ metadata:
     kapp.k14s.io/versioned: ""
     kapp.k14s.io/num-versions: "10"
 ---
-#@ if mgt_cluster:
+#@ if data.values.mgt_cluster:
 #@overlay/match by=overlay.subset({"kind":"KubeadmConfigTemplate"}),expects="0+"
 ---
 spec:
   template:
     spec:
       files:
-      - content: #@ base64.encode(data.values.openstack.kubernetes.cloud_config)
+      - content: #@base64.encode(data.values.openstack.kubernetes.cloud_config)
         encoding: base64
         owner: root
         path: /etc/kubernetes/openstack-cloud.conf
         permissions: "0600"
-      - content: #@ base64.encode(data.values.openstack.ca)
+      - content: #@base64.encode(data.values.openstack.ca)
         encoding: base64
         owner: root
         path: /etc/certs/cacert
         permissions: "0600"
-#@end
+#@ end

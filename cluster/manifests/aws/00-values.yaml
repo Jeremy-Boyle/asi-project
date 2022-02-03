@@ -1,10 +1,11 @@
 #@data/values
 ---
+#@overlay/match missing_ok=True
 aws:
   region: us-gov-east-1
   ssh_key:
     name: jeremy-asi
   instance:
-    ami_uuid: ami-0e99c73a0c1eefc66
+    ami_uuid: ami-06a8506777fc6c1d9
     control_plane: t3.large
     worker_node: t3.large

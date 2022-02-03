@@ -6435,7 +6435,7 @@ spec:
       - args:
         - --leader-elect
         - --metrics-bind-addr=localhost:8080
-        - --feature-gates=MachinePool=${EXP_MACHINE_POOL:=false},ClusterResourceSet=${EXP_CLUSTER_RESOURCE_SET:=false},ClusterTopology=${CLUSTER_TOPOLOGY:=false}
+        - --feature-gates=MachinePool=false,ClusterResourceSet=false,ClusterTopology=false
         command:
         - /manager
         image: k8s.gcr.io/cluster-api/cluster-api-controller:v1.0.2

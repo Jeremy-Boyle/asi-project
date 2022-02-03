@@ -42,7 +42,7 @@ spec:
       ami:
         id: #@ data.values.aws.instance.ami_uuid
       rootVolume:
-        size: #@ data.values.aws.image.size
+        size: #@data.values.image.size
         encrypted: true
       iamInstanceProfile: nodes.cluster-api-provider-aws.sigs.k8s.io
       instanceType: #@ data.values.aws.instance.worker_node
@@ -61,4 +61,4 @@ spec:
           kubeletExtraArgs:
             cloud-provider: aws
           name: '{{ ds.meta_data.local_hostname }}'
-      postKubeadmCommands: #@ label_worker()
+      postKubeadmCommands: #@label_worker()

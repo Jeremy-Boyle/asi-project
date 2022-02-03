@@ -89,7 +89,7 @@
     ```bash
     helm repo add bitnami https://charts.bitnami.com/bitnami
     kubectl create ns kiam
-    kubectl apply -f <(helm template kiam bitnami/kiam -f <(cat apps/common/aws/kiam-app-cr.yaml | yq e '.stringData."values.yaml"' - | yq -f extract e '' -) --dry-run | ytt --ignore-unknown-comments -f - -f apps/kiam/manifests/overlay.yaml)
+    kubectl apply -f <(helm template kiam bitnami/kiam -n kiam -f <(cat apps/common/aws/kiam-app-cr.yaml | yq e '.stringData."values.yaml"' - | yq -f extract e '' -) --dry-run | ytt --ignore-unknown-comments -f - -f apps/kiam/manifests/overlay.yaml)
     ```
 12. ### ClusterApi
     ```bash

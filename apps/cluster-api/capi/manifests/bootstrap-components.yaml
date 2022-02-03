@@ -4304,7 +4304,7 @@ spec:
       - args:
         - --leader-elect
         - --metrics-bind-addr=localhost:8080
-        - --feature-gates=MachinePool=${EXP_MACHINE_POOL:=false}
+        - --feature-gates=MachinePool=false
         command:
         - /manager
         image: k8s.gcr.io/cluster-api/kubeadm-bootstrap-controller:v1.0.2

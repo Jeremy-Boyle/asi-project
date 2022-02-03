@@ -1,7 +1,6 @@
 #@data/values
 ---
-#cluster_name: platform-ops-mgt
-#namespace: platform-ops
+mgt_cluster: False
 
 k8s:
   version: v1.23.1
