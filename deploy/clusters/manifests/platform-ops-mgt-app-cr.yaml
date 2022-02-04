@@ -17,7 +17,7 @@ spec:
       inline:
         paths:
           00-additonal-values.yaml: |
-            #@data/values
+            #@ data/values
             ---
             cluster_name: platform-ops-mgt
             namespace: platform-ops
@@ -53,7 +53,7 @@ spec:
       inline:
         paths:
           00-values.yaml: |
-            #@data/values
+            #@ data/values
             ---
             cluster_name: platform-ops-mgt
             namespace: platform-ops

@@ -1,0 +1,260 @@
+#@ load("@ytt:overlay", "overlay")
+#@ load("@ytt:yaml", "yaml")
+#@ load("@ytt:data", "data")
+#@ load("@ytt:base64", "base64")
+
+
+#@ def audit_policy():
+#! The following audit policy is based on three sources from upstream:
+#!   - the kubernetes docs example: https://raw.githubusercontent.com/kubernetes/website/master/content/en/examples/audit/audit-policy.yaml
+#!   - the GCE reference policy: https://github.com/kubernetes/kubernetes/blob/master/cluster/gce/gci/configure-helper.sh#L784
+#!   - UK Ministry of Justice policy: https://github.com/ministryofjustice/cloud-platform-infrastructure/blob/master/kops/live-1.yaml
+#!
+apiVersion: audit.k8s.io/v1beta1
+kind: Policy
+omitStages:
+  - "RequestReceived"
+rules:
+  #! The following requests were manually identified as high-volume and low-risk,
+  #! so drop them.
+  - level: None
+    users: ["system:kube-proxy"]
+    verbs: ["watch"]
+    resources:
+      - group: "" #! core
+        resources: ["endpoints", "services", "services/status"]
+  - level: None
+    namespaces: ["ingress-controllers"]
+    verbs: ["get"]
+    resources:
+      - group: "" #! core
+        resources: ["configmaps"]
+        resourceNames: ["ingress-controller-leader-nginx"]
+  - level: None
+    users: ["kubelet"] #! legacy kubelet identity
+    verbs: ["get"]
+    resources:
+      - group: "" #! core
+        resources: ["nodes", "nodes/status"]
+  - level: None
+    userGroups: ["system:nodes"]
+    verbs: ["get"]
+    resources:
+      - group: "" #! core
+        resources: ["nodes", "nodes/status"]
+  - level: None
+    users:
+      - system:kube-controller-manager
+      - system:kube-scheduler
+      - system:serviceaccount:kube-system:endpoint-controller
+    verbs: ["get", "update"]
+    namespaces: ["kube-system"]
+    resources:
+      - group: "" #! core
+        resources: ["endpoints"]
+  - level: None
+    users: ["system:apiserver"]
+    verbs: ["get"]
+    resources:
+      - group: "" #! core
+        resources: ["namespaces", "namespaces/status", "namespaces/finalize"]
+  #! Don't log HPA fetching metrics.
+  - level: None
+    users:
+      - system:kube-controller-manager
+    verbs: ["get", "list"]
+    resources:
+      - group: "metrics.k8s.io"
+  #! Don't log these read-only URLs.
+  - level: None
+    nonResourceURLs:
+      - /healthz*
+      - /version
+      - /swagger*
+  #! Don't log authenticated requests to certain non-resource URL paths.
+  - level: None
+    userGroups: ["system:authenticated"]
+    nonResourceURLs:
+    - "/api*"
+  #! Don't log events requests.
+  - level: None
+    resources:
+      - group: "" #! core
+        resources: ["events"]
+  #! Log "pods/log", "pods/status" at Metadata level
+  - level: Metadata
+    resources:
+    - group: ""
+      resources: ["pods/log", "pods/status"]
+  #! node and pod status calls from nodes are high-volume and can be large, don't log responses for expected updates from nodes
+  - level: Request
+    users: ["kubelet", "system:node-problem-detector", "system:serviceaccount:kube-system:node-problem-detector"]
+    verbs: ["update","patch"]
+    resources:
+      - group: "" #! core
+        resources: ["nodes/status", "pods/status"]
+  - level: Request
+    userGroups: ["system:nodes"]
+    verbs: ["update","patch"]
+    resources:
+      - group: "" #! core
+        resources: ["nodes/status", "pods/status"]
+  #! deletecollection calls can be large, don't log responses for expected namespace deletions
+  - level: Request
+    users: ["system:serviceaccount:kube-system:namespace-controller"]
+    verbs: ["deletecollection"]
+  #! Secrets, ConfigMaps, and TokenReviews can contain sensitive & binary data,
+  #! so only log at the Metadata level.
+  - level: Metadata
+    resources:
+      - group: "" #! core
+        resources: ["secrets", "configmaps"]
+      - group: authentication.k8s.io
+        resources: ["tokenreviews"]
+  #! Get repsonses can be large; skip them.
+  - level: Request
+    verbs: ["get", "list", "watch"]
+    resources:
+    - group: "" #! core
+    - group: "admissionregistration.k8s.io"
+    - group: "apiextensions.k8s.io"
+    - group: "apiregistration.k8s.io"
+    - group: "apps"
+    - group: "authentication.k8s.io"
+    - group: "authorization.k8s.io"
+    - group: "autoscaling"
+    - group: "batch"
+    - group: "certificates.k8s.io"
+    - group: "extensions"
+    - group: "metrics.k8s.io"
+    - group: "networking.k8s.io"
+    - group: "policy"
+    - group: "rbac.authorization.k8s.io"
+    - group: "scheduling.k8s.io"
+    - group: "settings.k8s.io"
+    - group: "storage.k8s.io"
+  #! Default level for known APIs
+  - level: RequestResponse
+    resources:
+    - group: "" #! core
+    - group: "admissionregistration.k8s.io"
+    - group: "apiextensions.k8s.io"
+    - group: "apiregistration.k8s.io"
+    - group: "apps"
+    - group: "authentication.k8s.io"
+    - group: "authorization.k8s.io"
+    - group: "autoscaling"
+    - group: "batch"
+    - group: "certificates.k8s.io"
+    - group: "extensions"
+    - group: "metrics.k8s.io"
+    - group: "networking.k8s.io"
+    - group: "policy"
+    - group: "rbac.authorization.k8s.io"
+    - group: "scheduling.k8s.io"
+    - group: "settings.k8s.io"
+    - group: "storage.k8s.io"
+  #! Default level for all other requests.
+  - level: Metadata
+    omitStages:
+      - "RequestReceived"
+
+#@ end
+
+#@overlay/match by=overlay.subset({"kind": "KubeadmControlPlane"}),expects="0+"
+---
+spec:
+  kubeadmConfigSpec:
+    clusterConfiguration:
+      apiServer:
+        #@overlay/match missing_ok=True
+        extraArgs:
+          #@overlay/match missing_ok=True
+          enable-admission-plugins: AlwaysPullImages,ServiceAccount,EventRateLimit,NamespaceLifecycle
+          #@overlay/match missing_ok=True
+          admission-control-config-file: /etc/kubernetes/admission-control-config.yaml
+          #@overlay/match missing_ok=True
+          audit-log-path: /var/log/kube-apiserver/kube-apiserver.log
+          #@overlay/match missing_ok=True
+          audit-policy-file: /etc/kubernetes/audit-policy.yaml
+          #@overlay/match missing_ok=True
+          audit-log-maxage: "30"
+          #@overlay/match missing_ok=True
+          audit-log-maxbackup: "10"
+          #@overlay/match missing_ok=True
+          audit-log-maxsize: "100"
+          #@overlay/match missing_ok=True
+          encryption-provider-config: /etc/kubernetes/encryption-provider.yaml
+        #@overlay/match missing_ok=True
+        extraVolumes:
+        - name: audit-policy
+          hostPath: /etc/kubernetes/audit-policy.yaml
+          mountPath: /etc/kubernetes/audit-policy.yaml
+        - name: audit-logs
+          hostPath: /var/log/kube-apiserver
+          mountPath: /var/log/kube-apiserver
+        - name: encryption-provider
+          hostPath: /etc/kubernetes/encryption-provider.yaml
+          mountPath: /etc/kubernetes/encryption-provider.yaml
+        - name: admission-control-config
+          hostPath: /etc/kubernetes/admission-control-config.yaml
+          mountPath: /etc/kubernetes/admission-control-config.yaml
+        - name: event-rate-limit-config
+          hostPath: /etc/kubernetes/event-rate-limit-config.yaml
+          mountPath: /etc/kubernetes/event-rate-limit-config.yaml
+    #@overlay/match missing_ok=True
+    files:
+      - path: /etc/kubernetes/encryption-provider.yaml
+        owner: "root:root"
+        permissions: "0600"
+        #@yaml/text-templated-strings
+        content: |
+          apiVersion: apiserver.config.k8s.io/v1
+          kind: EncryptionConfiguration
+          resources:
+            - resources:
+              - secrets
+              providers:
+              - aescbc:
+                  keys:
+                  - name: key1
+                    secret: (@= data.values.kubernetes.etcd.aescbc @)
+              - identity: {}
+      - path: /etc/kubernetes/admission-control-config.yaml
+        owner: "root:root"
+        permissions: "0600"
+        content: |
+          apiVersion: apiserver.config.k8s.io/v1
+          kind: AdmissionConfiguration
+          plugins:
+          - name: EventRateLimit
+            path: /etc/kubernetes/event-rate-limit-config.yaml
+      - path: /etc/kubernetes/event-rate-limit-config.yaml
+        owner: "root:root"
+        permissions: "0600"
+        content: |
+          apiVersion: eventratelimit.admission.k8s.io/v1alpha1
+          kind: Configuration
+          limits:
+          - type: Namespace
+            qps: 50
+            burst: 100
+            cacheSize: 2000
+          - type: User
+            qps: 10
+            burst: 50
+      - path: /etc/kubernetes/audit-policy.yaml
+        owner: "root:root"
+        permissions: "0600"
+        encoding: "base64"
+        # See "audit-config.yaml" this is just that file `gzip < audit-config.yaml | base64`
+        content: #@ base64.encode(yaml.encode(audit_policy()))
+#@overlay/match by=overlay.subset({"kind":"AWSMachineTemplate"}),expects="0+"
+---
+spec:
+  template:
+    spec:
+      #@overlay/match missing_ok=True
+      rootVolume:
+        #@overlay/match missing_ok=True
+        encrypted: true

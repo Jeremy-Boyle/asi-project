@@ -24,7 +24,7 @@ spec:
           kind: KubeadmConfigTemplate
           name: #@ "{}-md".format(data.values.cluster_name)
       clusterName: #@ data.values.cluster_name
-      failureDomain: nova
+      failureDomain: #@ "{}c".format(data.values.aws.region)
       infrastructureRef:
         apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
         kind: AWSMachineTemplate
@@ -42,7 +42,7 @@ spec:
       ami:
         id: #@ data.values.aws.instance.ami_uuid
       rootVolume:
-        size: #@data.values.image.size
+        size: #@ data.values.image.disk_size
         encrypted: true
       iamInstanceProfile: nodes.cluster-api-provider-aws.sigs.k8s.io
       instanceType: #@ data.values.aws.instance.worker_node
