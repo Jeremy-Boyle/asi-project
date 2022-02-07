@@ -30,3 +30,7 @@ spec:
   controlPlaneLoadBalancer:
     crossZoneLoadBalancing: true
   region: #@ data.values.aws.region
+  network:
+    vpc:
+      availabilityZoneUsageLimit: 3
+      cidrBlock: #@ data.values.aws.network.cidr

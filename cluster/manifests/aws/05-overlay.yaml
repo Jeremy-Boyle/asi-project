@@ -1,5 +1,14 @@
 #@ load("@ytt:overlay", "overlay")
 #@ load("@ytt:data", "data")
+#@ load("@ytt:base64", "base64")
+
+#@ def host_config():
+- hostnamectl set-hostname {{ v1.local_hostname }}.{{ v1.region }}.compute.internal
+#@ end
+
+#@ def label_worker():
+- kubectl --kubeconfig /etc/kubernetes/kubelet.conf label node {{ v1.local_hostname }}.{{ v1.region }}.compute.internal node-role.kubernetes.io/worker= --overwrite=true
+#@ end
 
 #@overlay/match by=overlay.all
 #@overlay/match by=overlay.subset({"kind":"AWSMachineTemplate"}),expects="0+"
@@ -43,21 +52,65 @@ metadata:
     kapp.k14s.io/versioned: ""
     kapp.k14s.io/num-versions: "10"
 ---
-#@ if data.values.mgt_cluster:
+#@ if data.values.mgt_cluster=="True":
 #@overlay/match by=overlay.subset({"kind":"KubeadmConfigTemplate"}),expects="0+"
 ---
 spec:
   template:
     spec:
+      #@overlay/match missing_ok=True
       files:
-      - content: #@base64.encode(data.values.openstack.kubernetes.cloud_config)
+      - content: #@ base64.encode(data.values.openstack.cloud_config)
         encoding: base64
         owner: root
         path: /etc/kubernetes/openstack-cloud.conf
         permissions: "0600"
-      - content: #@base64.encode(data.values.openstack.ca)
+      - content: #@ base64.encode(data.values.openstack.ca)
         encoding: base64
         owner: root
         path: /etc/certs/cacert
         permissions: "0600"
 #@ end
+#@overlay/match by=overlay.subset({"kind":"KubeadmControlPlane"}),expects="0+"
+---
+spec:
+  kubeadmConfigSpec:
+    initConfiguration:
+      nodeRegistration:
+        #@overlay/match missing_ok=True
+        name: '{{ v1.local_hostname }}.{{ v1.region }}.compute.internal'
+    joinConfiguration:
+      nodeRegistration:
+        #@overlay/match missing_ok=True
+        name: '{{ v1.local_hostname }}.{{ v1.region }}.compute.internal'
+    #@overlay/match missing_ok=True
+    preKubeadmCommands: #@ host_config()
+
+    #@ if data.values.mgt_cluster=="True":
+    #@overlay/match missing_ok=True
+    files:
+    - content: #@ base64.encode(data.values.openstack.cloud_config)
+      encoding: base64
+      owner: root
+      path: /etc/kubernetes/openstack-cloud.conf
+      permissions: "0600"
+    - content: #@ base64.encode(data.values.openstack.ca)
+      encoding: base64
+      owner: root
+      path: /etc/certs/cacert
+      permissions: "0600"
+    #@ end
+
+#@overlay/match by=overlay.subset({"kind":"KubeadmConfigTemplate"}),expects="0+"
+---
+spec:
+  template:
+    spec:
+      joinConfiguration:
+        nodeRegistration:
+          #@overlay/match missing_ok=True
+          name: '{{ v1.local_hostname }}.{{ v1.region }}.compute.internal'
+      #@overlay/match missing_ok=True
+      preKubeadmCommands: #@ host_config()
+      #@overlay/match missing_ok=True
+      postKubeadmCommands: #@ label_worker()

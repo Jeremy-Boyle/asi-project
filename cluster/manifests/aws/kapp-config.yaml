@@ -12,7 +12,7 @@ templateRules:
   - apiVersionKindMatcher: {apiVersion: infrastructure.cluster.x-k8s.io/v1beta1, kind: AWSMachineTemplate}
   affectedResources:
     objectReferences:
-    - path: [spec, infrastructureTemplate]
+    - path: [spec, machineTemplate, infrastructureRef]
       resourceMatchers:
       - apiVersionKindMatcher: {apiVersion: controlplane.cluster.x-k8s.io/v1beta1, kind: KubeadmControlPlane}
     - path: [spec, template, spec, infrastructureRef]
@@ -45,12 +45,12 @@ rebaseRules:
   - [spec, bastion, allowedCIDRBlocks]
   - [spec, controlPlaneLoadBalancer, crossZoneLoadBalancing]
   - [spec, controlPlaneLoadBalancer, scheme]
-  - [spec, networkSpec, vpc, id]
-  - [spec, networkSpec, vpc, internetGatewayId]
-  - [spec, networkSpec, vpc, availabilityZoneSelection]
-  - [spec, networkSpec, vpc, availabilityZoneUsageLimit]
-  - [spec, networkSpec, vpc, tags]
-  - [spec, networkSpec, cni, cniIngressRules]
+  - [spec, network, vpc, id]
+  - [spec, network, vpc, internetGatewayId]
+  - [spec, network, vpc, availabilityZoneSelection]
+  - [spec, network, vpc, availabilityZoneUsageLimit]
+  - [spec, network, vpc, tags]
+  - [spec, network, cni, cniIngressRules]
   - [spec, identityRef, kind]
   - [spec, identityRef, name]
   type: copy
@@ -61,8 +61,8 @@ rebaseRules:
 #! Ignore any subnet changes since CAPA might be inconsistent in reporting.
 #! See https://github.com/kubernetes-sigs/cluster-api-provider-aws/issues/2797
 - paths:
-  - [spec, networkSpec, subnets]
-  - [spec, networkSpec, vpc, cidrBlock]
+  - [spec, network, subnets]
+  - [spec, network, vpc, cidrBlock]
   - [spec, controlPlaneLoadBalancer, subnets]
   type: copy
   sources: [existing]

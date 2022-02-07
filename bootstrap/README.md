@@ -171,19 +171,26 @@
 1. ### Create the namespace and create the mgt cluster
     ```bash
     kubectl create ns kapp-controller
-    kapp deploy -a platform-ops-mgt-cluster-ctrl -n kapp-controller -f <(sops -d deploy/cluster/secrets/mgt-cluster-secret.platform-ops.sops.yaml | yq e '.stringData."00-values.yaml"' - | ytt --ignore-unknown-comments -f - -f deploy/cluster/manifests )
+    #Decrypt Cluster Values
+    sops -d deploy/clusters/secrets/shared/shared-cluster-values.platform-ops.sops.yaml | yq e '.stringData."00-values.yaml"' - > .decrypted~shared-cluster-values.yaml
+    sops -d deploy/clusters/secrets/openstack/openstack-cluster-secret.platform-ops.sops.yaml | yq e '.stringData."00-values.yaml"' - > .decrypted~openstack-cluster-secret.yaml
+
+    kapp deploy -a platform-ops-mgt-cluster-ctrl -n kapp-controller -f <(ytt --ignore-unknown-comments -v namespace=aws -v aws.network.cidr="10.1.1.0/24" -v cluster_name=platform-ops-mgt -v mgt_cluster=true -f deploy/clusters/manifests/common.yaml -f .decrypted~shared-cluster-values.yaml -f .decrypted~openstack-cluster-secret.yaml -f cluster/manifests/aws/ )
+
+    #Remove secrets
+    rm .decrypted~openstack-cluster-secret.yaml .decrypted~shared-cluster-values.yaml
     ```
 2. ### Wait for cluster to be created
     ```bash
-    watch clusterctl describe cluster platform-ops-mgt -n platform-ops
+    watch clusterctl describe cluster platform-ops-mgt -n aws
     ```
 3. ### Save cluster kubeconfig before migration
     ```bash
-    clusterctl get kubeconfig -n platform-ops platform-ops-mgt > mgt-cluster.kubeconfig
+    clusterctl get kubeconfig -n aws platform-ops-mgt > mgt-cluster.kubeconfig
     ```
 4. ### Install Calico on the mgt cluster
     ```bash
-    kapp deploy -a platform-ops-mgt-calico-ctrl --kubeconfig mgt-cluster.kubeconfig -f deploy/apps/calico
+    kubectl apply --kubeconfig mgt-cluster.kubeconfig -f apps/calico/manifests
     ```
 5. ### Install Kapp-controller on mgt cluster
     ```bash

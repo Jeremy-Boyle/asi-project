@@ -20,7 +20,7 @@ spec:
             #@ data/values
             ---
             cluster_name: platform-ops-mgt
-            namespace: platform-ops
+            namespace: aws
             mgt_cluster: true
         pathsFrom:
         - secretRef:
@@ -56,7 +56,7 @@ spec:
             #@ data/values
             ---
             cluster_name: platform-ops-mgt
-            namespace: platform-ops
+            namespace: aws
       paths:
       - deploy/apps/common
   deploy:

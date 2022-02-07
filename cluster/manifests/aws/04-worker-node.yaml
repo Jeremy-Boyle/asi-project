@@ -1,9 +1,6 @@
 #@ load("@ytt:data", "data")
 #@ load("@ytt:base64", "base64")
 
-#@ def label_worker():
-- kubectl --kubeconfig /etc/kubernetes/kubelet.conf label node {{ local_hostname }} node-role.kubernetes.io/worker= --overwrite=true
-#@ end
 ---
 apiVersion: cluster.x-k8s.io/v1beta1
 kind: MachineDeployment
@@ -44,7 +41,7 @@ spec:
       rootVolume:
         size: #@ data.values.image.disk_size
         encrypted: true
-      iamInstanceProfile: nodes.cluster-api-provider-aws.sigs.k8s.io
+      iamInstanceProfile: nodes.cluster-api-provider-aws.platform-ops.com
       instanceType: #@ data.values.aws.instance.worker_node
       sshKeyName: #@ data.values.aws.ssh_key
 ---
@@ -61,4 +58,3 @@ spec:
           kubeletExtraArgs:
             cloud-provider: aws
           name: '{{ ds.meta_data.local_hostname }}'
-      postKubeadmCommands: #@label_worker()
