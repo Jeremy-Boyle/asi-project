@@ -29,9 +29,9 @@ spec:
             #@overlay/match missing_ok=True
             cluster_name: platform-ops-mgt
             #@overlay/match missing_ok=True
-            create_ns: True
+            create_ns: "True"
             #@overlay/match missing_ok=True
-            mgt_cluster: True
+            mgt_cluster: "True"
             #@overlay/match missing_ok=True
             namespace: aws
             aws:
@@ -47,33 +47,34 @@ spec:
       - --wait-timeout=5m
       - --diff-changes=true
 ---
-# apiVersion: kappctrl.k14s.io/v1alpha1
-# kind: App
-# metadata:
-#   name: platform-ops-mgt-cluster-common-apps
-#   namespace: kapp-controller
-# spec:
-#   serviceAccountName: kapp-controller-clusteradmin
-#   fetch:
-#   - git:
-#       url: https://github.com/Jeremy-Boyle/asi-project
-#       ref: origin/master
-#       secretRef:
-#         name: github-token
-#   template:
-#   - ytt:
-#       ignoreUnknownComments: true
-#       inline:
-#         paths:
-#           00-values.yaml: |
-#             #@ data/values
-#             ---
-#             cluster_name: platform-ops-mgt
-#             namespace: aws
-#       paths:
-#       - deploy/apps/common
-#   deploy:
-#   - kapp:
-#       rawOptions:
-#       - --wait-timeout=5m
-#       - --diff-changes=true
+apiVersion: kappctrl.k14s.io/v1alpha1
+kind: App
+metadata:
+  name: platform-ops-mgt-cluster-common-apps
+  namespace: kapp-controller
+spec:
+  serviceAccountName: kapp-controller-clusteradmin
+  fetch:
+  - git:
+      url: https://github.com/Jeremy-Boyle/asi-project
+      ref: origin/master
+      secretRef:
+        name: github-token
+  template:
+  - ytt:
+      ignoreUnknownComments: true
+      inline:
+        paths:
+          00-values.yaml: |
+            #@ data/values
+            ---
+            cluster_name: platform-ops-mgt
+            namespace: aws
+      paths:
+      - deploy/apps/common/aws
+      - deploy/apps/common/shared
+  deploy:
+  - kapp:
+      rawOptions:
+      - --wait-timeout=5m
+      - --diff-changes=true

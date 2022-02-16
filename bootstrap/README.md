@@ -85,6 +85,12 @@
     ```bash
     kubectl apply -f apps/calico/manifests
     ```
+1. ### Install cert-mgr to bootstrap cluster
+    ```
+    kubectl create ns cert-manager
+
+    kubectl apply -f <(helm template cert-manager bitnami/cert-manager -n cert-manager -f <(cat apps/common/shared/cert-manager-app-cr.yaml | yq e '.stringData."values.yaml"' - | yq -f extract e '' -) --dry-run)
+    ```
 1. ### Install Kiam on bootstrap cluster (AWS ONLY)
     ```bash
     helm repo add bitnami https://charts.bitnami.com/bitnami
@@ -172,10 +178,10 @@
     ```bash
     kubectl create ns kapp-controller
     #Decrypt Cluster Values
-    sops -d deploy/clusters/secrets/shared/shared-cluster-values.platform-ops.sops.yaml | yq e '.stringData."00-values.yaml"' - > .decrypted~shared-cluster-values.yaml
-    sops -d deploy/clusters/secrets/openstack/openstack-cluster-secret.platform-ops.sops.yaml | yq e '.stringData."00-values.yaml"' - > .decrypted~openstack-cluster-secret.yaml
+    sops -d deploy/clusters/secrets/shared/shared-cluster-values.platform-ops.sops.yaml | yq e '.stringData."00-shared-values.yaml"' - > .decrypted~shared-cluster-values.yaml
+    sops -d deploy/clusters/secrets/openstack/openstack-cluster-secret.platform-ops.sops.yaml | yq e '.stringData."00-openstack-values.yaml"' - > .decrypted~openstack-cluster-secret.yaml
 
-    kapp deploy -a platform-ops-mgt-cluster-ctrl -n kapp-controller -f <(ytt --ignore-unknown-comments -v namespace=aws -v aws.network.cidr="10.1.1.0/24" -v cluster_name=platform-ops-mgt -v mgt_cluster=True -v create_namespace=True -f deploy/clusters/manifests/common.yaml -f .decrypted~shared-cluster-values.yaml -f .decrypted~openstack-cluster-secret.yaml -f cluster/manifests/aws/ )
+    kapp deploy -a platform-ops-mgt-cluster-ctrl -n kapp-controller -f <(ytt --ignore-unknown-comments -v namespace=aws -v aws.network.cidr="10.1.1.0/24" -v cluster_name=platform-ops-mgt -v create_ns=True -v mgt_cluster=True -v create_namespace=True -f .decrypted~shared-cluster-values.yaml -f .decrypted~openstack-cluster-secret.yaml -f cluster/manifests/aws/ )
 
     #Remove secrets
     rm .decrypted~openstack-cluster-secret.yaml .decrypted~shared-cluster-values.yaml
