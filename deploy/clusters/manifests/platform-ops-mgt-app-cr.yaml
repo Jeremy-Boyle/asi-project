@@ -8,59 +8,72 @@ spec:
   fetch:
   - git:
       url: https://github.com/Jeremy-Boyle/asi-project
-      ref: origin/master
+      ref: origin/dev
       secretRef:
         name: github-token
   template:
   - ytt:
       ignoreUnknownComments: true
       inline:
-        paths:
-          00-additonal-values.yaml: |
-            #@ data/values
-            ---
-            cluster_name: platform-ops-mgt
-            namespace: aws
-            mgt_cluster: true
         pathsFrom:
         - secretRef:
             #! This is found in deploy/clusters/secrets/openstack/openstack-cluster-secret.sops.yaml
             name: openstack-cluster-secrets
+        - secretRef:
+            #! This is found in deploy/clusters/secrets/openstack/openstack-cluster-secret.sops.yaml
+            name: shared-cluster-secrets
+        paths:
+          00-additional-values.yaml: |
+            #@data/values
+            ---
+            #@overlay/match missing_ok=True
+            cluster_name: platform-ops-mgt
+            #@overlay/match missing_ok=True
+            create_ns: True
+            #@overlay/match missing_ok=True
+            mgt_cluster: True
+            #@overlay/match missing_ok=True
+            namespace: aws
+            aws:
+              #@overlay/match missing_ok=True
+              network:
+                #@overlay/match missing_ok=True
+                cidr: "10.1.1.0/24"
       paths:
-      - cluster/manifests/aws/
+      - cluster/manifests/aws
   deploy:
   - kapp:
       rawOptions:
       - --wait-timeout=5m
       - --diff-changes=true
 ---
-apiVersion: kappctrl.k14s.io/v1alpha1
-kind: App
-metadata:
-  name: platform-ops-mgt-cluster-common-apps
-  namespace: kapp-controller
-spec:
-  serviceAccountName: kapp-controller-clusteradmin
-  fetch:
-  - git:
-      url: https://github.com/Jeremy-Boyle/asi-project
-      ref: origin/master
-      secretRef:
-        name: github-token
-  template:
-  - ytt:
-      ignoreUnknownComments: true
-      inline:
-        paths:
-          00-values.yaml: |
-            #@ data/values
-            ---
-            cluster_name: platform-ops-mgt
-            namespace: aws
-      paths:
-      - deploy/apps/common
-  deploy:
-  - kapp:
-      rawOptions:
-      - --wait-timeout=5m
-      - --diff-changes=true
+# apiVersion: kappctrl.k14s.io/v1alpha1
+# kind: App
+# metadata:
+#   name: platform-ops-mgt-cluster-common-apps
+#   namespace: kapp-controller
+# spec:
+#   serviceAccountName: kapp-controller-clusteradmin
+#   fetch:
+#   - git:
+#       url: https://github.com/Jeremy-Boyle/asi-project
+#       ref: origin/master
+#       secretRef:
+#         name: github-token
+#   template:
+#   - ytt:
+#       ignoreUnknownComments: true
+#       inline:
+#         paths:
+#           00-values.yaml: |
+#             #@ data/values
+#             ---
+#             cluster_name: platform-ops-mgt
+#             namespace: aws
+#       paths:
+#       - deploy/apps/common
+#   deploy:
+#   - kapp:
+#       rawOptions:
+#       - --wait-timeout=5m
+#       - --diff-changes=true

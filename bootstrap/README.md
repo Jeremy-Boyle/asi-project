@@ -175,7 +175,7 @@
     sops -d deploy/clusters/secrets/shared/shared-cluster-values.platform-ops.sops.yaml | yq e '.stringData."00-values.yaml"' - > .decrypted~shared-cluster-values.yaml
     sops -d deploy/clusters/secrets/openstack/openstack-cluster-secret.platform-ops.sops.yaml | yq e '.stringData."00-values.yaml"' - > .decrypted~openstack-cluster-secret.yaml
 
-    kapp deploy -a platform-ops-mgt-cluster-ctrl -n kapp-controller -f <(ytt --ignore-unknown-comments -v namespace=aws -v aws.network.cidr="10.1.1.0/24" -v cluster_name=platform-ops-mgt -v mgt_cluster=true -f deploy/clusters/manifests/common.yaml -f .decrypted~shared-cluster-values.yaml -f .decrypted~openstack-cluster-secret.yaml -f cluster/manifests/aws/ )
+    kapp deploy -a platform-ops-mgt-cluster-ctrl -n kapp-controller -f <(ytt --ignore-unknown-comments -v namespace=aws -v aws.network.cidr="10.1.1.0/24" -v cluster_name=platform-ops-mgt -v mgt_cluster=True -v create_namespace=True -f deploy/clusters/manifests/common.yaml -f .decrypted~shared-cluster-values.yaml -f .decrypted~openstack-cluster-secret.yaml -f cluster/manifests/aws/ )
 
     #Remove secrets
     rm .decrypted~openstack-cluster-secret.yaml .decrypted~shared-cluster-values.yaml
@@ -196,19 +196,11 @@
     ```bash
     kapp deploy --kubeconfig mgt-cluster.kubeconfig -a kapp-controller -n kube-system -f https://github.com/vmware-tanzu/carvel-kapp-controller/releases/latest/download/release.yml -f apps/kapp-controller/manifests
     ```
-1. ### Create cluster namespace
-    ```bash
-    kubectl --kubeconfig mgt-cluster.kubeconfig create ns aws
+1. ### Install cert-mgr to MGT cluster
     ```
-1. ### Move over the kubeconfig for the mgt cluster on the mgt cluster
-    ```bash
-    kubectl --kubeconfig mgt-cluster.kubeconfig create secret generic platform-ops-mgt-kubeconfig -n aws --from-file=value=<(kubectl get secrets -n aws platform-ops-mgt-kubeconfig -o=go-template='{{.data.value|base64decode}}')
-    ```
-1. ### Install Cert-manager on mgt cluster with kapp-controller
-    ```bash
-    kubectl --kubeconfig mgt-cluster.kubeconfig create ns cert-manager
+    kubectl create ns cert-manager
 
-    kubectl --kubeconfig mgt-cluster.kubeconfig apply -f <(ytt --ignore-unknown-comments --data-value cluster_name=platform-ops-mgt --data-value namespace=aws -f apps/common/shared/cert-manager-app-cr.yaml)
+    kubectl apply --kubeconfig mgt-cluster.kubeconfig -f <(helm template cert-manager bitnami/cert-manager -n cert-manager -f <(cat apps/common/shared/cert-manager-app-cr.yaml | yq e '.stringData."values.yaml"' - | yq -f extract e '' -) --dry-run)
     ```
 1. ### Move kapp deploy config over to new cluster
     ```
@@ -216,18 +208,23 @@
     ```
 1. ### Bootstrap The MGT Keys
     ```
-    for key in $(ls bootstrap/keys | grep 'sops.yaml');do sops -d bootstrap/keys/$key | kubectl --kubeconfig mgt-cluster.kubeconfig apply -f - ; done
+    for ns in aws openstack vsphere kapp-controller;do for key in $(ls bootstrap/keys | grep 'sops.yaml');do sops -d bootstrap/keys/$key | kubectl --kubeconfig mgt-cluster.kubeconfig apply -n $ns -f - ; done; done
+    ```
+1. ### Install kiam to MGT cluster
+    ```
+    kubectl create ns kiam
+    kubectl apply --kubeconfig mgt-cluster.kubeconfig -f <(helm template kiam bitnami/kiam -n kiam -f <(cat apps/common/aws/kiam-app-cr.yaml | yq e '.stringData."values.yaml"' - | yq -f extract e '' -) --dry-run | ytt --ignore-unknown-comments -f - -f apps/kiam/manifests/overlay.yaml)
     ```
 1. ### Migrate cluster with clustetctl
     ```
+    kubectl apply -f deploy/stack/mgt/manifests/capi-app-cr.yaml
     clusterctl move --to-kubeconfig=mgt-cluster.kubeconfig --namespace aws
     ```
-1. ### Migrate cluster with clustetctl
-    ```
-    clusterctl move --to-kubeconfig=mgt-cluster.kubeconfig --namespace aws
+1. ### Install MGT Stack
     ```
 
-1. # Openstack Only
+    ```
+1. # Openstack Boot Strap Only
     ```
     ytt -f apps/openstack-cloud-controller/manifests/ -f apps/cinder-csi-plugin/manifests | kapp deploy --kubeconfig mgt-cluster.kubeconfig -a platform-ops-mgt-openstack-controllers-ctl -n platform-ops -f - -y
     ```

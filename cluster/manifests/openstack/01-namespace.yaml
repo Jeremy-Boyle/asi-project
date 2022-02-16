@@ -1,7 +1,8 @@
 #@ load("@ytt:data", "data")
-
 ---
+#@ if data.values.create_ns=="True":
 apiVersion: v1
 kind: Namespace
 metadata:
   name: #@ data.values.namespace
+#@ end
