@@ -10,17 +10,17 @@
     sudo apt-get upgrade -y
     sudo apt-get install -y apt-transport-https ca-certificates curl containerd
     ```
-2. ### Install kubernetes repo and keyring
+1. ### Install kubernetes repo and keyring
     ```bash
     sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
     echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
     sudo apt-get update
     ```
-3. ### Install Kubernetes
+1. ### Install Kubernetes
     ```bash
     sudo apt-get install -y kubelet kubeadm kubectl
     ```
-4. ### Configure modprobe for networking
+1. ### Configure modprobe for networking
     ```bash
     sudo cat <<EOF | sudo tee /etc/modules-load.d/containerd.conf
     overlay
@@ -30,7 +30,7 @@
     sudo modprobe overlay
     sudo modprobe br_netfilter
     ```
-5. ### Setup required sysctl params, these persist across reboots.
+1. ### Setup required sysctl params, these persist across reboots.
     ```bash
     cat <<EOF | sudo tee /etc/sysctl.d/99-kubernetes-cri.conf
     net.bridge.bridge-nf-call-iptables  = 1
@@ -38,22 +38,22 @@
     net.bridge.bridge-nf-call-ip6tables = 1
     EOF
     ```
-6. ### Apply sysctl params without reboot
+1. ### Apply sysctl params without reboot
     ```bash
     sudo sysctl --system
     ```
 
-7. ### Setup Containerd
+1. ### Setup Containerd
     ```bash
     sudo mkdir -p /etc/containerd
     containerd config default | sudo tee /etc/containerd/config.toml
     ```
-8. ### Enable SystemCgrouping
+1. ### Enable SystemCgrouping
     ```bash
     sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
     sudo systemctl enable --now containerd
     ```
-9. Configure Nodes
+1. Configure Nodes
 
 - ### Control Plane Only
     ```bash
@@ -80,18 +80,18 @@
     cat ~/.kube/config
     ```
 
-10. ### Calico
+1. ### Calico
     Install calico on the bootstrap cluster otherwise you wont be able create pods on the bootstrap cluster
     ```bash
     kubectl apply -f apps/calico/manifests
     ```
-11. ### Install Kiam on bootstrap cluster (AWS ONLY)
+1. ### Install Kiam on bootstrap cluster (AWS ONLY)
     ```bash
     helm repo add bitnami https://charts.bitnami.com/bitnami
     kubectl create ns kiam
     kubectl apply -f <(helm template kiam bitnami/kiam -n kiam -f <(cat apps/common/aws/kiam-app-cr.yaml | yq e '.stringData."values.yaml"' - | yq -f extract e '' -) --dry-run | ytt --ignore-unknown-comments -f - -f apps/kiam/manifests/overlay.yaml)
     ```
-12. ### ClusterApi
+1. ### ClusterApi
     ```bash
     kubectl apply -f apps/cluster-api/capi/manifests -f apps/cluster-api/capa/manifests -f apps/cluster-api/capo/manifests
     ```
@@ -101,27 +101,27 @@
     git clone https://github.com/Jeremy-Boyle/image-builder -b ubuntu-1804-dod-asi
     cd image-builder/images/capi
     ```
-2. ### Install prerequisites
+1. ### Install prerequisites
     ```bash
     sudo apt update && sudo apt install make build-essential pip unzip awscli -y
     export PATH=$PATH:~/.local/bin/
     make deps-ami
     ```
-3. ### Configure AWS config file for packer
+1. ### Configure AWS config file for packer
     ```bash
     mkdir -p .aws
     cat <<EOF | tee ~/.aws/config
     [default]
     region = us-gov-east-1
     ```
-4. ### Configure packer
+1. ### Configure packer
     ```bash
     sed -i 's/"ami_groups": "all"/"ami_groups": ""/g' packer/ami/packer.json
     sed -i 's/"snapshot_groups": "all"/"snapshot_groups": ""/g' packer/ami/packer.json
     sed -i 's/"encrypted": "false"/"encrypted": "true"/g' packer/ami/packer.json
     sed -i 's/"kms_key_id": ""/"kms_key_id": "REPLACE_ME_WITH_KMS_ID"/g' packer/ami/packer.json
     ```
-4. ### Build DOD AMI
+1. ### Build DOD AMI
     ```bash
     make build-ami-ubuntu-1804-dod
     ```
@@ -131,13 +131,13 @@
     git clone https://github.com/Jeremy-Boyle/image-builder -b ubuntu-1804-dod-asi
     cd image-builder/images/capi
     ```
-2. ### Install prerequisites
+1. ### Install prerequisites
     ```bash
     sudo apt update && sudo apt install make build-essential pip unzip qemubuilder qemu-kvm libvirt-daemon-system libvirt-clients virtinst cpu-checker libguestfs-tools libosinfo-bin -y
     export PATH=$PATH:~/.local/bin/
     make deps-qemu
     ```
-3. ### Setup KVM
+1. ### Setup KVM
     ```bash
     sudo usermod -a -G kvm $USER
     sudo systemctl enable --now libvirtd
@@ -146,11 +146,11 @@
     sudo modprobe kvm_intel
     sudo chown root:kvm /dev/kvm
     ```
-3. ### Build DOD image for openstack
+1. ### Build DOD image for openstack
     ```bash
     make build-qemu-ubuntu-1804-dod
     ```
-4. ### SCP copy the iso image to the openstack server and import with openstack
+1. ### SCP copy the iso image to the openstack server and import with openstack
     ```bash
     scp output/IMAGE_FOLDER/IMAGE_NAME USERNAME@IP_ADDRESS:~/DEST
     openstack image create \
@@ -180,50 +180,54 @@
     #Remove secrets
     rm .decrypted~openstack-cluster-secret.yaml .decrypted~shared-cluster-values.yaml
     ```
-2. ### Wait for cluster to be created
+1. ### Wait for cluster to be created
     ```bash
     watch clusterctl describe cluster platform-ops-mgt -n aws
     ```
-3. ### Save cluster kubeconfig before migration
+1. ### Save cluster kubeconfig before migration
     ```bash
     clusterctl get kubeconfig -n aws platform-ops-mgt > mgt-cluster.kubeconfig
     ```
-4. ### Install Calico on the mgt cluster
+1. ### Install Calico on the mgt cluster
     ```bash
     kubectl apply --kubeconfig mgt-cluster.kubeconfig -f apps/calico/manifests
     ```
-5. ### Install Kapp-controller on mgt cluster
+1. ### Install Kapp-controller on mgt cluster
     ```bash
     kapp deploy --kubeconfig mgt-cluster.kubeconfig -a kapp-controller -n kube-system -f https://github.com/vmware-tanzu/carvel-kapp-controller/releases/latest/download/release.yml -f apps/kapp-controller/manifests
     ```
-6. ### Create mgt namespace
+1. ### Create cluster namespace
     ```bash
-    kubectl create ns platform-ops
+    kubectl --kubeconfig mgt-cluster.kubeconfig create ns aws
     ```
-7. ### Move over the kubeconfig for the mgt cluster on the mgt cluster
+1. ### Move over the kubeconfig for the mgt cluster on the mgt cluster
     ```bash
-    kubectl --kubeconfig mgt-cluster.kubeconfig create secret generic platform-ops-mgt-kubeconfig -n platform-ops --from-file=value=<(kubectl get secrets -n platform-ops platform-ops-mgt-kubeconfig -o=go-template='{{.data.value|base64decode}}')
+    kubectl --kubeconfig mgt-cluster.kubeconfig create secret generic platform-ops-mgt-kubeconfig -n aws --from-file=value=<(kubectl get secrets -n aws platform-ops-mgt-kubeconfig -o=go-template='{{.data.value|base64decode}}')
     ```
-7. ### Install Cert-manager on mgt cluster with kapp-controller
+1. ### Install Cert-manager on mgt cluster with kapp-controller
     ```bash
     kubectl --kubeconfig mgt-cluster.kubeconfig create ns cert-manager
 
-    kubectl --kubeconfig mgt-cluster.kubeconfig apply -f <(ytt --ignore-unknown-comments --data-value cluster_name=platform-ops-mgt --data-value namespace=platform-ops -f apps/common/shared/cert-manager-app-cr.yaml)
+    kubectl --kubeconfig mgt-cluster.kubeconfig apply -f <(ytt --ignore-unknown-comments --data-value cluster_name=platform-ops-mgt --data-value namespace=aws -f apps/common/shared/cert-manager-app-cr.yaml)
     ```
-8. ### Move kapp deploy config over to new cluster
+1. ### Move kapp deploy config over to new cluster
     ```
     kubectl get cm -n kapp-controller platform-ops-mgt-cluster-ctrl -o yaml | kubectl --kubeconfig mgt-cluster.kubeconfig apply -f -
     ```
-9. ### Migrate cluster with clustetctl
+1. ### Bootstrap The MGT Keys
     ```
-    clusterctl move --to-kubeconfig=mgt-cluster.kubeconfig --namespace platform-ops
+    for key in $(ls bootstrap/keys | grep 'sops.yaml');do sops -d bootstrap/keys/$key | kubectl --kubeconfig mgt-cluster.kubeconfig apply -f - ; done
     ```
-8. ### Bootstrap The MGT Keys
+1. ### Migrate cluster with clustetctl
     ```
-    for key in $(ls deploy/bootstrap/keys | grep 'sops.yaml');do sops -d deploy/bootstrap/keys/$key | kubectl apply -f - ; done
+    clusterctl move --to-kubeconfig=mgt-cluster.kubeconfig --namespace aws
+    ```
+1. ### Migrate cluster with clustetctl
+    ```
+    clusterctl move --to-kubeconfig=mgt-cluster.kubeconfig --namespace aws
     ```
 
-9. # Openstack Only
+1. # Openstack Only
     ```
     ytt -f apps/openstack-cloud-controller/manifests/ -f apps/cinder-csi-plugin/manifests | kapp deploy --kubeconfig mgt-cluster.kubeconfig -a platform-ops-mgt-openstack-controllers-ctl -n platform-ops -f - -y
     ```
