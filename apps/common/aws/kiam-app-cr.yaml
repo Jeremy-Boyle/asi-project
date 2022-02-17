@@ -107,7 +107,7 @@ spec:
       name: kiam
       repository:
         url: https://charts.bitnami.com/bitnami
-      version: "0.4.2"
+      version: "0.4.3"
   - git:
       url: https://github.com/Jeremy-Boyle/asi-project
       ref: origin/dev
