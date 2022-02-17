@@ -29,7 +29,7 @@ spec:
             #@overlay/match missing_ok=True
             cluster_name: platform-ops-mgt
             #@overlay/match missing_ok=True
-            create_ns: "True"
+            create_ns: "false"
             #@overlay/match missing_ok=True
             mgt_cluster: "True"
             #@overlay/match missing_ok=True
