@@ -6,7 +6,7 @@ metadata:
   name: #@ data.values.cluster_name
   namespace: #@ data.values.namespace
   labels:
-    cni: calico
+    cni: calico-aws
 spec:
   clusterNetwork:
     pods:
