@@ -27,6 +27,17 @@ spec:
       version: "0.1.29"
 
   template:
+  - ytt:
+      ignoreUnknownComments: true
+      inline:
+        paths:
+          00-namespace.yaml: |
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              labels:
+                kubernetes.io/metadata.name: cert-manager
+              name: cert-manager
   - helmTemplate:
       name: cert-manager
       namespace: cert-manager
