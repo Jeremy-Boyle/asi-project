@@ -15,9 +15,9 @@ spec:
   - ytt:
       ignoreUnknownComments: true
       paths:
-      - apps/cluster-api/capi/manifests/
-      - apps/cluster-api/capa/manifests/
-      - apps/cluster-api/capo/manifests/
+      - apps/cluster-api/capi/manifests
+      - apps/cluster-api/capa/manifests
+      - apps/cluster-api/capo/manifests
   deploy:
   - kapp:
       rawOptions:

@@ -15,7 +15,7 @@ spec:
   - ytt:
       ignoreUnknownComments: true
       paths:
-      - deploy/stack/mgt/manifests/
+      - deploy/stack/mgt/manifests
   deploy:
   - kapp:
       rawOptions:

@@ -99,6 +99,7 @@
     ```
 1. ### ClusterApi
     ```bash
+    clusterctl init -b kubeadm:v1.1.1 -c kubeadm:v1.1.1 --core cluster-api:v1.1.1 -i aws:v1.3.0
     kubectl apply -f apps/cluster-api/capi/manifests -f apps/cluster-api/capa/manifests -f apps/cluster-api/capo/manifests
     ```
 ## Creating a AMI
@@ -204,7 +205,7 @@
     ```
 1. ### Install cert-mgr to MGT cluster
     ```
-    kubectl create ns cert-manager
+    kubectl --kubeconfig mgt-cluster.kubeconfig create ns cert-manager
 
     kubectl apply --kubeconfig mgt-cluster.kubeconfig -f <(helm template cert-manager bitnami/cert-manager -n cert-manager -f <(cat apps/common/shared/cert-manager-app-cr.yaml | yq e '.stringData."values.yaml"' - | yq -f extract e '' -) --dry-run)
     ```
@@ -212,23 +213,23 @@
     ```
     kubectl get cm -n kapp-controller platform-ops-mgt-cluster-ctrl -o yaml | kubectl --kubeconfig mgt-cluster.kubeconfig apply -f -
     ```
-1. ### Bootstrap The MGT Keys
-    ```
-    for ns in aws openstack vsphere kapp-controller;do for key in $(ls bootstrap/keys | grep 'sops.yaml');do sops -d bootstrap/keys/$key | kubectl --kubeconfig mgt-cluster.kubeconfig apply -n $ns -f - ; done; done
-    ```
 1. ### Install kiam to MGT cluster
     ```
-    kubectl create ns kiam
+    kubectl --kubeconfig mgt-cluster.kubeconfig create ns kiam
     kubectl apply --kubeconfig mgt-cluster.kubeconfig -f <(helm template kiam bitnami/kiam -n kiam -f <(cat apps/common/aws/kiam-app-cr.yaml | yq e '.stringData."values.yaml"' - | yq -f extract e '' -) --dry-run | ytt --ignore-unknown-comments -f - -f apps/kiam/manifests/overlay.yaml)
+    ```
+1. ### Bootstrap The MGT Keys
+    ```
+    for ns in kapp-controller;do for key in $(ls bootstrap/keys | grep 'sops.yaml');do sops -d bootstrap/keys/$key | kubectl --kubeconfig mgt-cluster.kubeconfig apply -n $ns -f - ; done; done
     ```
 1. ### Migrate cluster with clustetctl
     ```
-    kubectl apply -f deploy/stack/mgt/manifests/capi-app-cr.yaml
+    kubectl --kubeconfig mgt-cluster.kubeconfig apply -f deploy/stack/mgt/manifests/capi-app-cr.yaml
     clusterctl move --to-kubeconfig=mgt-cluster.kubeconfig --namespace aws
     ```
 1. ### Install MGT Stack
     ```
-
+    kubectl --kubeconfig mgt-cluster.kubeconfig apply -f bootstrap/app-cr.yaml
     ```
 1. # Openstack Boot Strap Only
     ```
