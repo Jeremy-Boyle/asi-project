@@ -20,7 +20,7 @@ spec:
   - ytt:
       ignoreUnknownComments: true
       paths:
-      - deploy/apps/calico
+      - apps/calico/manifests
   deploy:
   - kapp:
       rawOptions:
