@@ -195,10 +195,6 @@
     ```bash
     clusterctl get kubeconfig -n aws platform-ops-mgt > mgt-cluster.kubeconfig
     ```
-1. ### Install Calico on the mgt cluster
-    ```bash
-    kubectl apply --kubeconfig mgt-cluster.kubeconfig -f apps/calico/manifests
-    ```
 1. ### Install Kapp-controller on mgt cluster
     ```bash
     kapp deploy --kubeconfig mgt-cluster.kubeconfig -a kapp-controller -n kube-system -f https://github.com/vmware-tanzu/carvel-kapp-controller/releases/latest/download/release.yml -f apps/kapp-controller/manifests
@@ -207,7 +203,7 @@
     ```
     kubectl --kubeconfig mgt-cluster.kubeconfig create ns cert-manager
 
-    kubectl apply --kubeconfig mgt-cluster.kubeconfig -f <(helm template cert-manager bitnami/cert-manager -n cert-manager -f <(cat apps/common/shared/cert-manager-app-cr.yaml | yq e '.stringData."values.yaml"' - | yq -f extract e '' -) --dry-run)
+    kapp deploy -a platform-ops-mgt-cert-manager --kubeconfig mgt-cluster.kubeconfig -n aws -f <(helm template cert-manager bitnami/cert-manager -n cert-manager -f <(cat apps/common/shared/cert-manager-app-cr.yaml | yq e '.stringData."values.yaml"' - | yq -f extract e '' -) --dry-run)
     ```
 1. ### Move kapp deploy config over to new cluster
     ```
