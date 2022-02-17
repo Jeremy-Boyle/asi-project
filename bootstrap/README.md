@@ -182,7 +182,7 @@
     sops -d deploy/clusters/secrets/shared/shared-cluster-values.platform-ops.sops.yaml | yq e '.stringData."00-shared-values.yaml"' - > .decrypted~shared-cluster-values.yaml
     sops -d deploy/clusters/secrets/openstack/openstack-cluster-secret.platform-ops.sops.yaml | yq e '.stringData."00-openstack-values.yaml"' - > .decrypted~openstack-cluster-secret.yaml
 
-    kapp deploy -a platform-ops-mgt-cluster-ctrl -n kapp-controller -f <(ytt --ignore-unknown-comments -v namespace=aws -v aws.network.cidr="10.1.1.0/24" -v cluster_name=platform-ops-mgt -v create_ns=True -v mgt_cluster=True -v create_namespace=True -f .decrypted~shared-cluster-values.yaml -f .decrypted~openstack-cluster-secret.yaml -f cluster/manifests/aws/ )
+    kapp deploy -a platform-ops-mgt-cluster-ctrl -n kapp-controller -f <(ytt --ignore-unknown-comments -v namespace=aws -v aws.network.cidr="10.1.1.0/24" -v cluster_name=platform-ops-mgt -v create_ns=False -v mgt_cluster=True -f .decrypted~shared-cluster-values.yaml -f .decrypted~openstack-cluster-secret.yaml -f cluster/manifests/aws/ )
 
     #Remove secrets
     rm .decrypted~openstack-cluster-secret.yaml .decrypted~shared-cluster-values.yaml
@@ -203,7 +203,7 @@
     ```
     kubectl --kubeconfig mgt-cluster.kubeconfig create ns cert-manager
 
-    kapp deploy -a platform-ops-mgt-cert-manager --kubeconfig mgt-cluster.kubeconfig -n aws -f <(helm template cert-manager bitnami/cert-manager -n cert-manager -f <(cat apps/common/shared/cert-manager-app-cr.yaml | yq e '.stringData."values.yaml"' - | yq -f extract e '' -) --dry-run)
+    kapp deploy -a platform-ops-mgt-cert-manager-ctl --kubeconfig mgt-cluster.kubeconfig -n aws -f <(helm template cert-manager bitnami/cert-manager -n cert-manager -f <(cat apps/common/shared/cert-manager-app-cr.yaml | yq e '.stringData."values.yaml"' - | yq -f extract e '' -) --dry-run)
     ```
 1. ### Move kapp deploy config over to new cluster
     ```
@@ -212,11 +212,12 @@
 1. ### Install kiam to MGT cluster
     ```
     kubectl --kubeconfig mgt-cluster.kubeconfig create ns kiam
-    kubectl apply --kubeconfig mgt-cluster.kubeconfig -f <(helm template kiam bitnami/kiam -n kiam -f <(cat apps/common/aws/kiam-app-cr.yaml | yq e '.stringData."values.yaml"' - | yq -f extract e '' -) --dry-run | ytt --ignore-unknown-comments -f - -f apps/kiam/manifests/overlay.yaml)
+
+    kapp deploy -a platform-ops-mgt-kiam-ctl -n aws --kubeconfig mgt-cluster.kubeconfig -f <(helm template kiam bitnami/kiam -n kiam -f <(cat apps/common/aws/kiam-app-cr.yaml | yq e '.stringData."values.yaml"' - | yq -f extract e '' -) --dry-run | ytt --ignore-unknown-comments -f - -f apps/kiam/manifests/overlay.yaml)
     ```
 1. ### Bootstrap The MGT Keys
     ```
-    for ns in kapp-controller;do for key in $(ls bootstrap/keys | grep 'sops.yaml');do sops -d bootstrap/keys/$key | kubectl --kubeconfig mgt-cluster.kubeconfig apply -n $ns -f - ; done; done
+    for ns in aws kapp-controller;do for key in $(ls bootstrap/keys | grep 'sops.yaml');do sops -d bootstrap/keys/$key | kubectl --kubeconfig mgt-cluster.kubeconfig apply -n $ns -f - ; done; done
     ```
 1. ### Install MGT Stack
     ```
