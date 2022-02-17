@@ -1,7 +1,7 @@
 apiVersion: kappctrl.k14s.io/v1alpha1
 kind: App
 metadata:
-  name: cluster-api
+  name: mgt-stack
   namespace: kapp-controller
 spec:
   serviceAccountName: kapp-controller-clusteradmin

@@ -222,14 +222,13 @@
     ```
     for ns in kapp-controller;do for key in $(ls bootstrap/keys | grep 'sops.yaml');do sops -d bootstrap/keys/$key | kubectl --kubeconfig mgt-cluster.kubeconfig apply -n $ns -f - ; done; done
     ```
-1. ### Migrate cluster with clustetctl
-    ```
-    kubectl --kubeconfig mgt-cluster.kubeconfig apply -f deploy/stack/mgt/manifests/capi-app-cr.yaml
-    clusterctl move --to-kubeconfig=mgt-cluster.kubeconfig --namespace aws
-    ```
 1. ### Install MGT Stack
     ```
     kubectl --kubeconfig mgt-cluster.kubeconfig apply -f bootstrap/app-cr.yaml
+    ```
+1. ### Migrate cluster with clustetctl
+    ```
+    clusterctl move --to-kubeconfig=mgt-cluster.kubeconfig --namespace aws
     ```
 1. # Openstack Boot Strap Only
     ```
