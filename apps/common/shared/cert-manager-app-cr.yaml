@@ -27,11 +27,18 @@ spec:
       version: "0.4.5"
 
   template:
+  - helmTemplate:
+      name: cert-manager
+      namespace: cert-manager
+      valuesFrom:
+      - secretRef:
+          name: #@ "{}-cert-manager-helm-values".format(data.values.cluster_name)
   - ytt:
       ignoreUnknownComments: true
       inline:
         paths:
           00-namespace.yaml: |
+            #@ load("@ytt:overlay", "overlay")
             ---
             apiVersion: v1
             kind: Namespace
@@ -39,12 +46,6 @@ spec:
               labels:
                 kubernetes.io/metadata.name: cert-manager
               name: cert-manager
-  - helmTemplate:
-      name: cert-manager
-      namespace: cert-manager
-      valuesFrom:
-      - secretRef:
-          name: #@ "{}-cert-manager-helm-values".format(data.values.cluster_name)
   deploy:
   - kapp:
       rawOptions:
