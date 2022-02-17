@@ -5,6 +5,8 @@ kind: Cluster
 metadata:
   name: #@ data.values.cluster_name
   namespace: #@ data.values.namespace
+  labels:
+    cni: calico
 spec:
   clusterNetwork:
     pods:
