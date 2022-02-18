@@ -249,12 +249,3 @@ spec:
         encoding: "base64"
         # See "audit-config.yaml" this is just that file `gzip < audit-config.yaml | base64`
         content: #@ base64.encode(yaml.encode(audit_policy()))
-#@overlay/match by=overlay.subset({"kind":"AWSMachineTemplate"}),expects="0+"
----
-spec:
-  template:
-    spec:
-      #@overlay/match missing_ok=True
-      rootVolume:
-        #@overlay/match missing_ok=True
-        encrypted: true

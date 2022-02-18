@@ -13,9 +13,17 @@ metadata:
 spec:
   clusterName: #@ data.values.cluster_name
   replicas: 1
+  minReadySeconds: 0
+  progressDeadlineSeconds: 600
+  revisionHistoryLimit: 1
   selector:
     matchLabels:
       cluster.x-k8s.io/cluster-name: #@ data.values.cluster_name
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
   template:
     spec:
       bootstrap:
