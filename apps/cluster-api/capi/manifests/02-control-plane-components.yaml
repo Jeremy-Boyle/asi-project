@@ -36,7 +36,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capi-kubeadm-control-plane-webhook-service
           namespace: capi-kubeadm-control-plane-system
@@ -3743,7 +3742,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capi-kubeadm-control-plane-webhook-service
           namespace: capi-kubeadm-control-plane-system

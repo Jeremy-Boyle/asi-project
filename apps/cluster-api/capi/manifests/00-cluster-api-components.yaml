@@ -20,7 +20,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capi-webhook-service
           namespace: capi-system
@@ -1257,7 +1256,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capi-webhook-service
           namespace: capi-system
@@ -1555,7 +1553,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capi-webhook-service
           namespace: capi-system
@@ -2078,7 +2075,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capi-webhook-service
           namespace: capi-system
@@ -3212,7 +3208,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capi-webhook-service
           namespace: capi-system
@@ -4658,7 +4653,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capi-webhook-service
           namespace: capi-system
@@ -5489,7 +5483,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capi-webhook-service
           namespace: capi-system
@@ -6885,7 +6878,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capi-webhook-service
           namespace: capi-system
@@ -8037,7 +8029,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capi-webhook-service
           namespace: capi-system
@@ -10148,7 +10139,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capi-kubeadm-bootstrap-webhook-service
           namespace: capi-kubeadm-bootstrap-system
@@ -13213,7 +13203,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capi-kubeadm-bootstrap-webhook-service
           namespace: capi-kubeadm-bootstrap-system
@@ -16545,7 +16534,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capi-kubeadm-control-plane-webhook-service
           namespace: capi-kubeadm-control-plane-system
@@ -20252,7 +20240,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capi-kubeadm-control-plane-webhook-service
           namespace: capi-kubeadm-control-plane-system

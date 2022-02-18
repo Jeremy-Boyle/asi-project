@@ -36,7 +36,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capa-webhook-service
           namespace: capa-system
@@ -351,7 +350,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capa-webhook-service
           namespace: capa-system
@@ -839,7 +837,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capa-webhook-service
           namespace: capa-system
@@ -3506,7 +3503,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capa-webhook-service
           namespace: capa-system
@@ -6205,7 +6201,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capa-webhook-service
           namespace: capa-system
@@ -7623,7 +7618,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capa-webhook-service
           namespace: capa-system
@@ -8750,7 +8744,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capa-webhook-service
           namespace: capa-system
@@ -12785,7 +12778,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capa-webhook-service
           namespace: capa-system
@@ -13190,7 +13182,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capa-webhook-service
           namespace: capa-system

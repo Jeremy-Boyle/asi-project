@@ -36,7 +36,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capi-kubeadm-bootstrap-webhook-service
           namespace: capi-kubeadm-bootstrap-system
@@ -3101,7 +3100,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capi-kubeadm-bootstrap-webhook-service
           namespace: capi-kubeadm-bootstrap-system

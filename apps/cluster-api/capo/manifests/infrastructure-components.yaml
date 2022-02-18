@@ -35,7 +35,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capo-webhook-service
           namespace: capo-system
@@ -2489,7 +2488,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capo-webhook-service
           namespace: capo-system
@@ -3221,7 +3219,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capo-webhook-service
           namespace: capo-system
@@ -4016,7 +4013,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capo-webhook-service
           namespace: capo-system
