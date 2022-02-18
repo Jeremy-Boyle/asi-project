@@ -10,8 +10,13 @@ rebaseRules:
   sources: [new, existing]
   resourceMatchers:
   - apiVersionKindMatcher: {apiVersion: apiextensions.k8s.io/v1,kind: CustomResourceDefinition}
-- path: [status,conditions]
+- path: [spec, conversion, strategy]
   type: copy
   sources: [new, existing]
   resourceMatchers:
   - apiVersionKindMatcher: {apiVersion: apiextensions.k8s.io/v1,kind: CustomResourceDefinition}
+- path: [rules]
+  type: copy
+  sources: [existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: rbac.authorization.k8s.io/v1,kind: ClusterRole}

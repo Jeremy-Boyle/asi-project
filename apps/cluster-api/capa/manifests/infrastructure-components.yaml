@@ -40,6 +40,7 @@ spec:
           name: capa-webhook-service
           namespace: capa-system
           path: /convert
+          port: 443
       conversionReviewVersions:
       - v1
       - v1beta1
@@ -349,6 +350,7 @@ spec:
           name: capa-webhook-service
           namespace: capa-system
           path: /convert
+          port: 443
       conversionReviewVersions:
       - v1
       - v1beta1
@@ -831,6 +833,7 @@ spec:
           name: capa-webhook-service
           namespace: capa-system
           path: /convert
+          port: 443
       conversionReviewVersions:
       - v1
       - v1beta1
@@ -3487,6 +3490,7 @@ spec:
           name: capa-webhook-service
           namespace: capa-system
           path: /convert
+          port: 443
       conversionReviewVersions:
       - v1
       - v1beta1
@@ -6170,6 +6174,7 @@ spec:
           name: capa-webhook-service
           namespace: capa-system
           path: /convert
+          port: 443
       conversionReviewVersions:
       - v1
       - v1beta1
@@ -7582,6 +7587,7 @@ spec:
           name: capa-webhook-service
           namespace: capa-system
           path: /convert
+          port: 443
       conversionReviewVersions:
       - v1
       - v1beta1
@@ -8703,6 +8709,7 @@ spec:
           name: capa-webhook-service
           namespace: capa-system
           path: /convert
+          port: 443
       conversionReviewVersions:
       - v1
       - v1beta1
@@ -12727,6 +12734,7 @@ spec:
           name: capa-webhook-service
           namespace: capa-system
           path: /convert
+          port: 443
       conversionReviewVersions:
       - v1
       - v1beta1
@@ -13126,6 +13134,7 @@ spec:
           name: capa-webhook-service
           namespace: capa-system
           path: /convert
+          port: 443
       conversionReviewVersions:
       - v1
       - v1beta1
