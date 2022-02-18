@@ -2,15 +2,17 @@
 ---
 #@overlay/match missing_ok=True
 openstack:
+  #@overlay/match missing_ok=True
   ssh_key:
     name: arch
+  #@overlay/match missing_ok=True
   instance:
     image_name: Ubuntu-20.04-kube-v1.23.1
     image_uuid: ea9e7214-64a0-433f-a3fb-f6fedf60bf11
     control_plane: k.control-plane
     worker_node: k.worker-node
+  #@overlay/match missing_ok=True
   network:
-    cidr: 10.1.1.0/24
     id: 82a9fd0b-ab2e-47f8-9c5d-10891759aac6
     api_loadbalancer: false
     disable_public_ip: false

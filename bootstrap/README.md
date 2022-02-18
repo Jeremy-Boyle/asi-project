@@ -203,7 +203,7 @@
     ```
     kubectl --kubeconfig mgt-cluster.kubeconfig create ns cert-manager
 
-    kapp deploy -a platform-ops-mgt-cert-manager-ctl --kubeconfig mgt-cluster.kubeconfig -n aws -f <(helm template cert-manager bitnami/cert-manager -n cert-manager -f <(cat apps/common/shared/cert-manager-app-cr.yaml | yq e '.stringData."values.yaml"' - | yq -f extract e '' -) --dry-run)
+    kapp deploy -a platform-ops-mgt-cert-manager-crtl --kubeconfig mgt-cluster.kubeconfig -f <(helm template cert-manager bitnami/cert-manager -n cert-manager -f <(cat apps/common/shared/cert-manager-app-cr.yaml | yq e '.stringData."values.yaml"' - | yq -f extract e '' -) --dry-run)
     ```
 1. ### Move kapp deploy config over to new cluster
     ```
@@ -213,7 +213,7 @@
     ```
     kubectl --kubeconfig mgt-cluster.kubeconfig create ns kiam
 
-    kapp deploy -a platform-ops-mgt-kiam-ctl -n aws --kubeconfig mgt-cluster.kubeconfig -f <(helm template kiam bitnami/kiam -n kiam -f <(cat apps/common/aws/kiam-app-cr.yaml | yq e '.stringData."values.yaml"' - | yq -f extract e '' -) --dry-run | ytt --ignore-unknown-comments -f - -f apps/kiam/manifests/overlay.yaml)
+    kapp deploy -a platform-ops-mgt-kiam-ctrl --kubeconfig mgt-cluster.kubeconfig -f <(helm template kiam bitnami/kiam -n kiam -f <(cat apps/common/aws/kiam-app-cr.yaml | yq e '.stringData."values.yaml"' - | yq -f extract e '' -) --dry-run | ytt --ignore-unknown-comments -f - -f apps/kiam/manifests/overlay.yaml)
     ```
 1. ### Bootstrap The MGT Keys
     ```

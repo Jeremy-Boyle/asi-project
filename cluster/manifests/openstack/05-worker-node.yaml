@@ -49,7 +49,7 @@ spec:
       rootVolume:
         diskSize: #@ data.values.image.disk_size
         sourceType: image
-        sourceUUID: #@ data.values.openstack.image.image_uuid
+        sourceUUID: #@ data.values.openstack.instance.image_uuid
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
 kind: KubeadmConfigTemplate
@@ -60,7 +60,7 @@ spec:
   template:
     spec:
       files:
-      - content: #@ base64.encode(data.values.openstack.kubernetes.cloud_config)
+      - content: #@ base64.encode(data.values.openstack.cloud_config)
         encoding: base64
         owner: root
         path: /etc/kubernetes/openstack-cloud.conf
