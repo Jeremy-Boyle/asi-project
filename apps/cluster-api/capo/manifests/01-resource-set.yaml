@@ -1,0 +1,29 @@
+---
+apiVersion: addons.cluster.x-k8s.io/v1beta1
+kind: ClusterResourceSet
+metadata:
+  name: calico-cni-openstack
+  namespace: openstack
+spec:
+  clusterSelector:
+    matchLabels:
+      cni: calico-openstack
+  resources:
+  - kind: ConfigMap
+    name: calico-cni-openstack
+  strategy: ApplyOnce
+---
+apiVersion: addons.cluster.x-k8s.io/v1beta1
+kind: ClusterResourceSet
+metadata:
+  name: controller-openstack
+  namespace: openstack
+spec:
+  clusterSelector:
+    matchLabels:
+      bootstrap: controller-openstack
+  resources:
+  - kind: ConfigMap
+    name: controller-openstack
+  strategy: ApplyOnce
+---

@@ -28,12 +28,24 @@ spec:
             ---
             #@overlay/match missing_ok=True
             cluster_name: platform-ops-mgt
+
             #@overlay/match missing_ok=True
             create_ns: "false"
+
             #@overlay/match missing_ok=True
             mgt_cluster: "True"
+
             #@overlay/match missing_ok=True
             namespace: aws
+
+            #@overlay/match missing_ok=True
+            control_plane:
+              replicas: 1
+
+            #@overlay/match missing_ok=True
+            worker_node:
+              replicas: 2
+
             aws:
               #@overlay/match missing_ok=True
               network:

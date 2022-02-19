@@ -28,12 +28,24 @@ spec:
             ---
             #@overlay/match missing_ok=True
             cluster_name: tools
+
             #@overlay/match missing_ok=True
             create_ns: "False"
+
             #@overlay/match missing_ok=True
             mgt_cluster: "False"
+
             #@overlay/match missing_ok=True
             namespace: openstack
+
+            #@overlay/match missing_ok=True
+            control_plane:
+              replicas: 1
+
+            #@overlay/match missing_ok=True
+            worker_node:
+              replicas: 2
+
             openstack:
               #@overlay/match missing_ok=True
               network:

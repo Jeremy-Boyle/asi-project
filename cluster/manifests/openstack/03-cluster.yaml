@@ -7,6 +7,7 @@ metadata:
   namespace: #@ data.values.namespace
   labels:
     cni: calico-openstack
+    bootstrap: controller-openstack
 spec:
   clusterNetwork:
     pods:
