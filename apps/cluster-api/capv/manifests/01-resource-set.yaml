@@ -1,0 +1,14 @@
+---
+apiVersion: addons.cluster.x-k8s.io/v1beta1
+kind: ClusterResourceSet
+metadata:
+  name: calico-cni-vsphere
+  namespace: vsphere
+spec:
+  clusterSelector:
+    matchLabels:
+      cni: calico-vsphere
+  resources:
+  - kind: ConfigMap
+    name: calico-cni-vsphere
+  strategy: ApplyOnce

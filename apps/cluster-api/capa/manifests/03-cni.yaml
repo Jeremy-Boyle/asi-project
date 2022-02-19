@@ -1,37 +1,5 @@
 ---
 apiVersion: v1
-kind: Namespace
-metadata:
-  name: vsphere
----
-apiVersion: clusterctl.cluster.x-k8s.io/v1alpha3
-kind: Provider
-metadata:
-  labels:
-    cluster.x-k8s.io/provider: infrastructure-vsphere
-    clusterctl.cluster.x-k8s.io: ""
-    clusterctl.cluster.x-k8s.io/core: inventory
-  name: infrastructure-vpshere
-  namespace: capv-system
-providerName: vsphere
-type: InfrastructureProvider
-version: v0.7.12
----
-apiVersion: addons.cluster.x-k8s.io/v1beta1
-kind: ClusterResourceSet
-metadata:
-  name: calico-cni-vsphere
-  namespace: vsphere
-spec:
-  clusterSelector:
-    matchLabels:
-      cni: calico-vsphere
-  resources:
-  - kind: ConfigMap
-    name: calico-cni-vsphere
-  strategy: ApplyOnce
----
-apiVersion: v1
 data:
   calico-3-21.yaml: |+
     ---
@@ -998,7 +966,7 @@ data:
                       workload endpoints and so distinguishes them from host endpoint
                       interfaces. Note: in environments other than bare metal, the orchestrators
                       configure this appropriately. For example our Kubernetes and Docker
-                      integrations set the ''cali'' value, and our vsphere integration
+                      integrations set the ''cali'' value, and our OpenStack integration
                       sets the ''tap'' value. [Default: cali]'
                     type: string
                   interfaceRefreshInterval:
@@ -1111,7 +1079,7 @@ data:
                     type: integer
                   metadataAddr:
                     description: 'MetadataAddr is the IP address or domain name of the
-                      server that can answer VM queries for cloud-init metadata. In vsphere,
+                      server that can answer VM queries for cloud-init metadata. In OpenStack,
                       this corresponds to the machine running nova-api (or in Ubuntu,
                       nova-api-metadata). A value of none (case insensitive) means that
                       Felix should not set up any NAT rule for the metadata path. [Default:
@@ -1145,12 +1113,12 @@ data:
                     x-kubernetes-int-or-string: true
                   netlinkTimeout:
                     type: string
-                  vsphereRegion:
-                    description: 'vsphereRegion is the name of the region that a particular
-                      Felix belongs to. In a multi-region Calico/vsphere deployment,
+                  openstackRegion:
+                    description: 'OpenstackRegion is the name of the region that a particular
+                      Felix belongs to. In a multi-region Calico/OpenStack deployment,
                       this must be configured somehow for each Felix (here in the datamodel,
                       or in felix.cfg or the environment on each compute node), and must
-                      match the [calico] vsphere_region value configured in neutron.conf
+                      match the [calico] openstack_region value configured in neutron.conf
                       on each node. [Default: Empty]'
                     type: string
                   policySyncPathPrefix:
@@ -1197,7 +1165,7 @@ data:
                   reportingInterval:
                     description: 'ReportingInterval is the interval at which Felix reports
                       its status into the datastore or 0 to disable. Must be non-zero
-                      in vsphere deployments. [Default: 30s]'
+                      in OpenStack deployments. [Default: 30s]'
                     type: string
                   reportingTTL:
                     description: 'ReportingTTL is the time-to-live setting for process-wide
@@ -4476,5 +4444,5 @@ data:
 kind: ConfigMap
 metadata:
   creationTimestamp: null
-  name: calico-cni-vsphere
-  namespace: vsphere
+  name: calico-cni-aws
+  namespace: aws
