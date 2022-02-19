@@ -56,10 +56,10 @@ spec:
     preKubeadmCommands:
     - sudo systemctl restart systemd-networkd && sleep 15
     machineTemplate:
-    infrastructureRef:
-      apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
-      kind: OpenStackMachineTemplate
-      name: #@ "{}-control-plane".format(data.values.cluster_name)
+      infrastructureRef:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+        kind: OpenStackMachineTemplate
+        name: #@ "{}-control-plane".format(data.values.cluster_name)
   replicas: #@ data.values.control_plane.replicas
   version: #@ data.values.k8s.version
 ---
