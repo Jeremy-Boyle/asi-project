@@ -52,8 +52,7 @@ spec:
         kubeletExtraArgs:
             cloud-provider: external
         name: '{{ local_hostname }}'
-    preKubeadmCommands:
-    - ip link set dev ens3 up
+    useExperimentalRetryJoin: true
   machineTemplate:
     infrastructureRef:
       apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
