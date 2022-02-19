@@ -85,5 +85,5 @@ spec:
           name: '{{ local_hostname }}'
       useExperimentalRetryJoin: true
       preKubeadmCommands:
-      - ip link set dev ens3 up
+      - sudo systemctl restart systemd-networkd && sleep 15
       postKubeadmCommands: #@ label_worker()
