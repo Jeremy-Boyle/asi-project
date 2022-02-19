@@ -68,6 +68,8 @@ metadata:
 spec:
   template:
     spec:
+      securityGroups:
+        - name: allow-internal-ssh
       cloudName: openstack
       flavor:  #@ data.values.openstack.instance.control_plane
       identityRef:
