@@ -1,0 +1,23 @@
+apiVersion: kappctrl.k14s.io/v1alpha1
+kind: App
+metadata:
+  name: cluster-api
+  namespace: kapp-controller
+spec:
+  serviceAccountName: kapp-controller-clusteradmin
+  fetch:
+  - git:
+      url: https://github.com/Jeremy-Boyle/asi-project
+      ref: origin/main
+      secretRef:
+        name: github-token
+  template:
+  - ytt:
+      ignoreUnknownComments: true
+      paths:
+      - deploy/clusters/manifests
+  deploy:
+  - kapp:
+      rawOptions:
+      - --wait-timeout=5m
+      - --diff-changes=true
