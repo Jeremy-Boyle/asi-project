@@ -62,8 +62,10 @@
 
 * [YTT](https://carvel.dev/ytt/)
 * [Kapp](https://carvel.dev/kapp/)
+* [Helm](https://helm.sh/)
 * [Kubernetes](https://kubernetes.io/)
 * [Cluster-API](https://cluster-api.sigs.k8s.io/)
+* [Image-Builder](https://image-builder.sigs.k8s.io/)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

@@ -21,5 +21,5 @@ spec:
       #@overlay/replace
       - name: cloud-config-volume
         hostPath:
-          path: /etc/kubernetes/cloud.conf
+          path: /etc/kubernetes/openstack-cloud.conf
           type: File

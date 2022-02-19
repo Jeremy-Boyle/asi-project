@@ -14,16 +14,16 @@ spec:
         extraArgs:
           cloud-provider: external
         extraVolumes:
-        - hostPath: /etc/kubernetes/cloud.conf
-          mountPath: /etc/kubernetes/cloud.conf
+        - hostPath: /etc/kubernetes/openstack-cloud.conf
+          mountPath: /etc/kubernetes/openstack-cloud.conf
           name: cloud
           readOnly: true
       controllerManager:
         extraArgs:
           cloud-provider: external
         extraVolumes:
-        - hostPath: /etc/kubernetes/cloud.conf
-          mountPath: /etc/kubernetes/cloud.conf
+        - hostPath: /etc/kubernetes/openstack-cloud.conf
+          mountPath: /etc/kubernetes/openstack-cloud.conf
           name: cloud
           readOnly: true
         - hostPath: /etc/certs/cacert
@@ -32,10 +32,10 @@ spec:
           readOnly: true
       imageRepository: k8s.gcr.io
     files:
-    - content: #@ base64.encode(data.values.kubernetes.cloud_config)
+    - content: #@ base64.encode(data.values.openstack.cloud_config)
       encoding: base64
       owner: root
-      path: /etc/kubernetes/cloud.conf
+      path: /etc/kubernetes/openstack-cloud.conf
       permissions: "0600"
     - content: #@ base64.encode(data.values.openstack.ca)
       encoding: base64
@@ -69,13 +69,13 @@ spec:
   template:
     spec:
       cloudName: openstack
-      flavor:  #@ data.values.instance_type.control_plane
+      flavor:  #@ data.values.openstack.instance.control_plane
       identityRef:
         kind: Secret
         name: #@ "{}-cloud-config".format(data.values.cluster_name)
-      image: #@ data.values.image.name
-      sshKeyName: #@ data.values.ssh_key.name
+      image: #@ data.values.openstack.instance.image_name
+      sshKeyName: #@ data.values.openstack.ssh_key.name
       rootVolume:
         diskSize: #@ data.values.image.disk_size
         sourceType: image
-        sourceUUID: #@ data.values.image.image_uuid
+        sourceUUID: #@ data.values.openstack.instance.image_uuid

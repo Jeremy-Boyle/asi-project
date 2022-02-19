@@ -46,7 +46,7 @@ spec:
       inline:
         paths:
           00-values.yaml: |
-            #@data/values
+            #@ data/values
             ---
             cluster_name: simul8s
             namespace: simul8s

@@ -20,8 +20,8 @@ spec:
   - ytt:
       ignoreUnknownComments: true
       paths:
-      - deploy/apps/openstack-cloud-controller/manifests
-      - deploy/apps/cinder-csi-plugin/manifests
+      - apps/openstack-cloud-controller/manifests
+      - apps/cinder-csi-plugin/manifests
   deploy:
   - kapp:
       rawOptions:

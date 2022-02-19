@@ -1,4 +1,0 @@
-#@data/values
----
-k8s:
-  version: v1.23.1

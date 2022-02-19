@@ -1,15 +1,10 @@
-#@ load("@ytt:data", "data")
----
 apiVersion: kappctrl.k14s.io/v1alpha1
 kind: App
 metadata:
-  name: #@ "{}-calico".format(data.values.cluster_name)
-  namespace: #@ data.values.namespace
+  name: mgt-stack
+  namespace: kapp-controller
 spec:
-  cluster:
-    kubeconfigSecretRef:
-      name: #@ "{}-kubeconfig".format(data.values.cluster_name)
-      key: value
+  serviceAccountName: kapp-controller-clusteradmin
   fetch:
   - git:
       url: https://github.com/Jeremy-Boyle/asi-project
@@ -20,7 +15,7 @@ spec:
   - ytt:
       ignoreUnknownComments: true
       paths:
-      - deploy/apps/calico
+      - deploy/stack/mgt/manifests
   deploy:
   - kapp:
       rawOptions:

@@ -5,6 +5,19 @@ metadata:
     cluster.x-k8s.io/provider: infrastructure-openstack
   name: capo-system
 ---
+apiVersion: clusterctl.cluster.x-k8s.io/v1alpha3
+kind: Provider
+metadata:
+  labels:
+    cluster.x-k8s.io/provider: infrastructure-openstack
+    clusterctl.cluster.x-k8s.io: ""
+    clusterctl.cluster.x-k8s.io/core: inventory
+  name: infrastructure-aws
+  namespace: capo-system
+providerName: openstack
+type: InfrastructureProvider
+version: v0.5.2
+---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -22,7 +35,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capo-webhook-service
           namespace: capo-system
@@ -2452,12 +2464,7 @@ spec:
     storage: true
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
+
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -2476,7 +2483,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capo-webhook-service
           namespace: capo-system
@@ -3184,12 +3190,7 @@ spec:
         type: object
     served: true
     storage: true
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
+
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -3208,7 +3209,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capo-webhook-service
           namespace: capo-system
@@ -3979,12 +3979,7 @@ spec:
     storage: true
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
+
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -4003,7 +3998,6 @@ spec:
     strategy: Webhook
     webhook:
       clientConfig:
-        caBundle: Cg==
         service:
           name: capo-webhook-service
           namespace: capo-system
@@ -4682,12 +4676,7 @@ spec:
         type: object
     served: true
     storage: true
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
+
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -4901,7 +4890,7 @@ spec:
         - --v=2
         command:
         - /manager
-        image: k8s.gcr.io/capi-openstack/capi-openstack-controller:v0.5.0
+        image: k8s.gcr.io/capi-openstack/capi-openstack-controller:v0.5.2
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:

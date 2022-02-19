@@ -1,0 +1,18 @@
+#@data/values
+---
+#@overlay/match missing_ok=True
+openstack:
+  #@overlay/match missing_ok=True
+  ssh_key:
+    name: arch
+  #@overlay/match missing_ok=True
+  instance:
+    image_name: Ubuntu-1804-dod-kube-v1.23.3
+    image_uuid: eb1491db-85ab-4478-979e-46f8089b601c
+    control_plane: k.control-plane
+    worker_node: k.worker-node
+  #@overlay/match missing_ok=True
+  network:
+    id: 0268026a-3faf-4866-b751-742209ff1e29
+    api_loadbalancer: false
+    disable_public_ip: false

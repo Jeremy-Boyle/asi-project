@@ -2,7 +2,6 @@ apiVersion: ENC[AES256_GCM,data:XCA=,iv:HKa1tWL3Bux7QUhxYXRi5VOp7y3r9EqXQzNctcWf
 kind: ENC[AES256_GCM,data:1RTaakXB,iv:s0y5NokRLEjjPuAfawIvBIa+5K5vozif8Rpiam1RsmE=,tag:2IrLOaXurHgECvED6BG7wA==,type:str]
 metadata:
     name: ENC[AES256_GCM,data:pPrVHP9sBeWhaigH,iv:ISdbK3cPx1r5F72wyb60U/K9pIkmcvVunU54Jxa9gGI=,tag:Wx+YqDkQp1upaUgKGH5xvA==,type:str]
-    namespace: ENC[AES256_GCM,data:qm8Sk1q+oXnpWz6SXlZ0,iv:Bp8kkExePn0n946rpYymS+P4q4Ut802PqczwB3svJfQ=,tag:xBdt4gZAxk2o1nLauVVZAg==,type:str]
 stringData:
     username: ENC[AES256_GCM,data:abIAr2ZyHigPHpbb,iv:s7heLBYRydR39Li/2RSrveA1VX0W1LFdLVInF0HKj5Q=,tag:TA9AfuBPYC1rxFSMN7sRRw==,type:str]
     password: ENC[AES256_GCM,data:R1xrZqYH2qRUbsjZL8cJBfsTu+1b8dU7txtH15k8VkgocBge2itxQg==,iv:vhRlo++96kPuAwKLZO6qTnf9dD6TtUSXx9pxTuf6Yfg=,tag:vjQoPFGepqcKe0rB9nuCbA==,type:str]
@@ -12,8 +11,8 @@ sops:
     azure_kv: []
     hc_vault: []
     age: []
-    lastmodified: "2021-12-29T20:10:53Z"
-    mac: ENC[AES256_GCM,data:jv/iu1iSDqCRR7R0zSKrJs639OdlXT4BplLwozUPHMfNZ25sz9ifqEo9iSphFdWIuMGdzfmyx8TIt7T7ltAl1rFW2GEPpu7gb/q7TkvRLOXQwJx9BGsuAuPbohSkbWerWWxUBAIDDr/JdCO1tF+BHYIUFkp5aYT6u2W9BspsQlw=,iv:l06ozin+iGsKdjdTlWZhdnqOmYlXRTWj+vgls0pYfsU=,tag:/fVBX13QcTgwK/8k23lPVQ==,type:str]
+    lastmodified: "2022-02-16T15:28:01Z"
+    mac: ENC[AES256_GCM,data:2aG3RH4NIV9Nk4uEhWsm0ntvd5lk2o3eQea78TTHqAzZRntiFQVJttRwAs/BARFp0HIjWjkUavRE3B3s1jZBRmW+h8wgWW3XrAU9okGBGrF7ZoqoA24RhsUGVAuDu93vGS/Z34u0xW863pW4AkkrXp5Lp4pOO4YxNugr77H8574=,iv:iD1jBTEa4/NCr3saEFW5Lv5iagJbKsj4gLogGnkU8zk=,tag:EXBGwgh/kMFVZFMVhAvj+w==,type:str]
     pgp:
         - created_at: "2021-12-29T20:10:52Z"
           enc: |

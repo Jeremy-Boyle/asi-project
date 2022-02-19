@@ -1,9 +1,6 @@
 #@ load("@ytt:data", "data")
 #@ load("@ytt:base64", "base64")
 
-#@ def label_worker():
-- kubectl --kubeconfig /etc/kubernetes/kubelet.conf label node {{ local_hostname }} node-role.kubernetes.io/worker= --overwrite=true
-#@ end
 ---
 apiVersion: cluster.x-k8s.io/v1beta1
 kind: MachineDeployment
@@ -12,7 +9,7 @@ metadata:
   namespace: #@ data.values.namespace
 spec:
   clusterName: #@ data.values.cluster_name
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       cluster.x-k8s.io/cluster-name: #@ data.values.cluster_name
@@ -24,7 +21,7 @@ spec:
           kind: KubeadmConfigTemplate
           name: #@ "{}-md".format(data.values.cluster_name)
       clusterName: #@ data.values.cluster_name
-      failureDomain: nova
+      failureDomain: #@ "{}c".format(data.values.aws.region)
       infrastructureRef:
         apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
         kind: AWSMachineTemplate
@@ -39,9 +36,14 @@ metadata:
 spec:
   template:
     spec:
-      iamInstanceProfile: nodes.cluster-api-provider-aws.sigs.k8s.io
-      instanceType: #@ data.values.instance_type.worker_node
-      sshKeyName: default
+      ami:
+        id: #@ data.values.aws.instance.ami_uuid
+      rootVolume:
+        size: #@ data.values.image.disk_size
+        encrypted: true
+      iamInstanceProfile: nodes.cluster-api-provider-aws.platform-ops.com
+      instanceType: #@ data.values.aws.instance.worker_node
+      sshKeyName: #@ data.values.aws.ssh_key
 ---
 apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
 kind: KubeadmConfigTemplate
@@ -56,4 +58,3 @@ spec:
           kubeletExtraArgs:
             cloud-provider: aws
           name: '{{ ds.meta_data.local_hostname }}'
-      postKubeadmCommands: #@ label_worker()

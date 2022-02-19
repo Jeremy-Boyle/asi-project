@@ -1,7 +1,7 @@
 apiVersion: kappctrl.k14s.io/v1alpha1
 kind: App
 metadata:
-  name: platform-ops-mgt-cluster
+  name: tools-cluster
   namespace: kapp-controller
 spec:
   serviceAccountName: kapp-controller-clusteradmin
@@ -27,20 +27,20 @@ spec:
             #@data/values
             ---
             #@overlay/match missing_ok=True
-            cluster_name: platform-ops-mgt
+            cluster_name: tools
             #@overlay/match missing_ok=True
-            create_ns: "false"
+            create_ns: "False"
             #@overlay/match missing_ok=True
-            mgt_cluster: "True"
+            mgt_cluster: "False"
             #@overlay/match missing_ok=True
-            namespace: aws
-            aws:
+            namespace: openstack
+            openstack:
               #@overlay/match missing_ok=True
               network:
                 #@overlay/match missing_ok=True
-                cidr: "10.1.1.0/24"
+                cidr: "10.0.2.0/24"
       paths:
-      - cluster/manifests/aws
+      - cluster/manifests/openstack
   deploy:
   - kapp:
       rawOptions:
@@ -50,7 +50,7 @@ spec:
 apiVersion: kappctrl.k14s.io/v1alpha1
 kind: App
 metadata:
-  name: platform-ops-mgt-cluster-common-apps
+  name: tools-cluster-common-apps
   namespace: kapp-controller
 spec:
   serviceAccountName: kapp-controller-clusteradmin
@@ -68,10 +68,10 @@ spec:
           00-values.yaml: |
             #@data/values
             ---
-            cluster_name: platform-ops-mgt
-            namespace: aws
+            cluster_name: tools
+            namespace: openstack
       paths:
-      - apps/common/aws
+      - apps/common/openstack
       - apps/common/shared
   deploy:
   - kapp:

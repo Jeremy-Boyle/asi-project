@@ -1,0 +1,244 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:yaml", "yaml")
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: #@ "{}-kiam-helm-values".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+stringData:
+  values.yaml: |
+    agent:
+      tlsSecret: kiam-agent-tls
+      tlsCerts:
+        certFileName: tls.crt
+        keyFileName: tls.key
+        caFileName: ca.crt
+      iptables: true
+      containerSecurityContext:
+        runAsNonRoot: false
+        runAsUser: 0
+        #@overlay/replace
+        seLinuxOptions:
+          user: system_u
+          role: system_r
+          type: spc_t
+          level: s0
+      podSecurityContext:
+        fsGroup: 0
+      metrics:
+        enabled: true
+      gatewayTimeoutCreation: 5s
+
+    server:
+      resourceType: deployment
+      sessionDuration: 30m
+      replicaCount: 3
+      sslCertHostPath: /etc/ssl/certs
+      containerSecurityContext:
+        runAsNonRoot: false
+        runAsUser: 0
+        #@overlay/replace
+        seLinuxOptions:
+          user: system_u
+          role: system_r
+          type: spc_t
+          level: s0
+      podSecurityContext:
+        fsGroup: 0
+      extraArgs:
+        region: $(AWS_REGION)
+      extraEnvVars:
+      - name: AWS_REGION
+        value: us-gov-east-1
+      - name: AWS_DEFAULT_REGION
+        value: us-gov-east-1
+
+      tlsSecret: kiam-server-tls
+      tlsCerts:
+        certFileName: tls.crt
+        keyFileName: tls.key
+        caFileName: ca.crt
+      gatewayTimeoutCreation: 5s
+      assumeRoleArn: kiam-server.cluster-api-provider-aws.platform-ops.com
+      roleBaseArn: ""
+      dnsPolicy: Default
+      metrics:
+        enabled: true
+      #@overlay/replace
+      nodeSelector:
+        node-role.kubernetes.io/master: ""
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        effect: "NoSchedule"
+        operator: "Exists"
+      #! these are automatically added to daemonsets, so we need them manually since deployment: https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/#taints-and-tolerations
+      - key: "node-role.kubernetes.io/not-ready"
+        effect: "NoSchedule"
+        operator: "Exists"
+      - key: "node-role.kubernetes.io/unreachable"
+        effect: "NoSchedule"
+        operator: "Exists"
+      - key: "node-role.kubernetes.io/disk-pressure"
+        effect: "NoSchedule"
+        operator: "Exists"
+      - key: "node-role.kubernetes.io/memory-pressure"
+        effect: "NoSchedule"
+        operator: "Exists"
+      - key: "node-role.kubernetes.io/unschedulable"
+        effect: "NoSchedule"
+        operator: "Exists"
+      - key: "node-role.kubernetes.io/network-unavailable"
+        effect: "NoSchedule"
+        operator: "Exists"
+---
+apiVersion: kappctrl.k14s.io/v1alpha1
+kind: App
+metadata:
+  name: #@ "{}-kiam".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+spec:
+  cluster:
+    kubeconfigSecretRef:
+      name: #@ "{}-kubeconfig".format(data.values.cluster_name)
+      key: value
+  fetch:
+  - helmChart:
+      name: kiam
+      repository:
+        url: https://charts.bitnami.com/bitnami
+      version: "0.4.3"
+  template:
+  - helmTemplate:
+      name: kiam
+      namespace: kiam
+      valuesFrom:
+      - secretRef:
+          name: #@ "{}-kiam-helm-values".format(data.values.cluster_name)
+  - ytt:
+      ignoreUnknownComments: true
+      inline:
+        paths:
+          00-values.yaml: |
+            #@ load("@ytt:data", "data")
+            #@ load("@ytt:overlay", "overlay")
+
+            #@overlay/match by=overlay.not_op(overlay.subset({"kind": "Namespace"})),expects="0+"
+            ---
+            #@overlay/match missing_ok=True
+            metadata:
+              #@overlay/match missing_ok=True
+              namespace: kiam
+
+            ---
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              name: kiam
+              annotations:
+                iam.amazonaws.com/permitted: ".*"
+            ---
+            apiVersion: cert-manager.io/v1
+            kind: Issuer
+            metadata:
+              name: kiam-selfsigned-issuer
+              namespace: kiam
+            spec:
+              selfSigned: {}
+            ---
+            apiVersion: cert-manager.io/v1
+            kind: Certificate
+            metadata:
+              name: kiam-serving-cert
+              namespace: kiam
+            spec:
+              secretName: kiam-ca-tls
+              commonName: kiam-ca
+              isCA: true
+              issuerRef:
+                name: kiam-selfsigned-issuer
+              usages:
+              - any
+            ---
+            apiVersion: cert-manager.io/v1
+            kind: Issuer
+            metadata:
+              name: kiam-ca-issuer
+              namespace: kiam
+            spec:
+              ca:
+                secretName: kiam-ca-tls
+            ---
+            apiVersion: cert-manager.io/v1
+            kind: Certificate
+            metadata:
+              name: kiam-agent
+              namespace: kiam
+            spec:
+              secretName: kiam-agent-tls
+              commonName: agent
+              issuerRef:
+                name: kiam-ca-issuer
+              usages:
+              - any
+            ---
+            apiVersion: cert-manager.io/v1
+            kind: Certificate
+            metadata:
+              name: kiam-server
+              namespace: kiam
+            spec:
+              secretName: kiam-server-tls
+              commonName: server
+              issuerRef:
+                name: kiam-ca-issuer
+              usages:
+              - any
+              dnsNames:
+              - localhost
+              - kiam-server
+              - kiam-server.kiam.svc
+              - kiam-server.kiam.svc.cluster.local
+              ipAddresses:
+              - "127.0.0.1"
+            #@overlay/match by=overlay.subset({"kind":"DaemonSet"}),expects="0+"
+            ---
+            spec:
+
+              template:
+                spec:
+                  affinity:
+                    #@overlay/replace
+                    nodeAffinity:
+                      requiredDuringSchedulingIgnoredDuringExecution:
+                        nodeSelectorTerms:
+                        - matchExpressions:
+                          - key: node-role.kubernetes.io/worker
+                            operator: Exists
+                  containers:
+                    - #@overlay/match by=overlay.all,expects="1+"
+                      #@overlay/match
+                      securityContext:
+                        #@overlay/match missing_ok=True
+                        capabilities:
+                          add:
+                          - NET_ADMIN
+
+            #@overlay/match by=overlay.subset({"kind":"Deployment"}),expects="0+"
+            ---
+            spec:
+              template:
+                spec:
+                  containers:
+                    - #@overlay/match by=overlay.all,expects="1+"
+                      #@overlay/match
+                      securityContext:
+                        #@overlay/match missing_ok=True
+                        capabilities:
+                          add:
+                          - NET_ADMIN
+  deploy:
+  - kapp:
+      rawOptions:
+      - --wait-timeout=5m
+      - --diff-changes=true
