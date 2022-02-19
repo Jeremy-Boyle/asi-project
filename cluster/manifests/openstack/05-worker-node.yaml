@@ -83,4 +83,6 @@ spec:
           kubeletExtraArgs:
             cloud-provider: external
           name: '{{ local_hostname }}'
+      preKubeadmCommands:
+      - ip link set dev ens3 up
       postKubeadmCommands: #@ label_worker()
