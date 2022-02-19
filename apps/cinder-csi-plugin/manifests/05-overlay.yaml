@@ -21,7 +21,7 @@ spec:
       #@overlay/replace
       - name: secret-cinderplugin
         hostPath:
-          path: /etc/kubernetes/cloud.conf
+          path: /etc/kubernetes/openstack-cloud.conf
           type: File
 #@overlay/match by=overlay.all
 #@overlay/match by=overlay.subset({ "kind": "Deployment", "metadata": { "name": "csi-cinder-controllerplugin" }}),expects="1+"
