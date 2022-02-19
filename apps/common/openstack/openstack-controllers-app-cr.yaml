@@ -13,15 +13,15 @@ spec:
   fetch:
   - git:
       url: https://github.com/Jeremy-Boyle/asi-project
-      ref: origin/master
+      ref: origin/dev
       secretRef:
         name: github-token
   template:
   - ytt:
       ignoreUnknownComments: true
       paths:
-      - deploy/apps/openstack-cloud-controller/manifests
-      - deploy/apps/cinder-csi-plugin/manifests
+      - apps/openstack-cloud-controller/manifests
+      - apps/cinder-csi-plugin/manifests
   deploy:
   - kapp:
       rawOptions:

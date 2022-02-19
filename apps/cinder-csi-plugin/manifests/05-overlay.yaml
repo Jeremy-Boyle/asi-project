@@ -43,7 +43,7 @@ spec:
       #@overlay/replace
       - name: secret-cinderplugin
         hostPath:
-          path: /etc/kubernetes/cloud.conf
+          path: /etc/kubernetes/openstack-cloud.conf
           type: File
 ---
 apiVersion: storage.k8s.io/v1
