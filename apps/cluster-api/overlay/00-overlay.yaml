@@ -1,0 +1,76 @@
+#@ load("@ytt:overlay", "overlay")
+#@ load("@ytt:data", "data")
+---
+# VPN needed to remotely connect to api server
+
+#@ control = overlay.subset({"kind":"Deployment","metadata":{"name":"capi-controller-manager"}})
+#@ kubeadm = overlay.subset({"kind":"Deployment","metadata":{"name":"capi-kubeadm-control-plane-controller-manager"}})
+#@ kubeboot = overlay.subset({"kind":"Deployment","metadata":{"name":"capi-kubeadm-bootstrap-controller-manager"}})
+#@overlay/match by=overlay.or_op(control, kubeadm, kubeboot),expects="2+"
+---
+spec:
+  template:
+    spec:
+      #@overlay/match missing_ok=True
+      volumes:
+        - name: vpn-config
+          secret:
+            secretName: vpn-config
+            items:
+                - key: client.ovpn
+                  path: client.ovpn
+        - name: vpn-auth
+          secret:
+            secretName: vpn-auth
+            items:
+                - key: auth.txt
+                  path: auth.txt
+        - name: route-script
+          configMap:
+            name: route-script
+            items:
+              - key: route-override.sh
+                path: route-override.sh
+        - name: tmp
+          emptyDir: {}
+      #@overlay/match missing_ok=True
+      initContainers:
+      - name: vpn-route-init
+        image: busybox
+        command: ['/bin/sh', '-c', 'cp /vpn/route-override.sh /tmp/route/route-override.sh; chown root:root /tmp/route/route-override.sh; chmod o+x /tmp/route/route-override.sh;']
+        volumeMounts:
+          - name: tmp
+            mountPath: /tmp/route
+          - name: route-script
+            mountPath: /vpn/route-override.sh
+            subPath: route-override.sh
+      #@overlay/match missing_ok=True
+      containers:
+        - name: vpn
+          image: dperson/openvpn-client
+          command: ["/bin/sh","-c"]
+          args: ["openvpn --config 'vpn/client.ovpn' --auth-user-pass 'vpn/auth.txt' --script-security 3 --route-up /tmp/route/route-override.sh;"]
+          stdin: true
+          tty: true
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - NET_ADMIN
+          env:
+            - name: TZ
+              value: "America/New_York"
+          volumeMounts:
+            - name: vpn-config
+              mountPath: /vpn/client.ovpn
+              subPath: client.ovpn
+            - name: vpn-auth
+              mountPath: /vpn/auth.txt
+              subPath: auth.txt
+            - name: tmp
+              mountPath: /tmp/route
+      #@overlay/match missing_ok=True
+      dnsConfig:
+        nameservers:
+          - 8.8.8.8
+          - 8.8.4.4
