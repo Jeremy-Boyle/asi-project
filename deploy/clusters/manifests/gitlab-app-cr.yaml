@@ -5,6 +5,9 @@ metadata:
   namespace: kapp-controller
 spec:
   serviceAccountName: kapp-controller-clusteradmin
+  syncPeriod: 5m
+  syncPeriod: 5m
+  paused: false
   fetch:
   - git:
       url: https://github.com/Jeremy-Boyle/asi-project
@@ -66,6 +69,8 @@ metadata:
   namespace: kapp-controller
 spec:
   serviceAccountName: kapp-controller-clusteradmin
+  syncPeriod: 5m
+  paused: false
   fetch:
   - git:
       url: https://github.com/Jeremy-Boyle/asi-project
