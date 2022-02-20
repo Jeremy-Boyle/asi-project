@@ -9,13 +9,13 @@ metadata:
 stringData:
   values.yaml: |
     configInline:
-    disablePermitInsecure: false
-    tls:
-      fallback-certificate: {}
-    leaderelection:
-      configmap-namespace: "contour"
-    envoy-service-name: 'contour-envoy'
-    accesslog-format: envoy
+      disablePermitInsecure: false
+      tls:
+        fallback-certificate: {}
+      leaderelection:
+        configmap-namespace: "contour"
+      envoy-service-name: 'contour-envoy'
+      accesslog-format: envoy
 ---
 apiVersion: kappctrl.k14s.io/v1alpha1
 kind: App
