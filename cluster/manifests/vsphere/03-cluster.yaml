@@ -6,7 +6,7 @@ metadata:
   name: #@ data.values.cluster_name
   namespace: #@ data.values.namespace
   labels:
-    cni: vsphere-openstack
+    cni: calico-vsphere
 spec:
   clusterNetwork:
     pods:
