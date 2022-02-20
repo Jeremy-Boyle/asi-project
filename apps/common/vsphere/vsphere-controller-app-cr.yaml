@@ -30,7 +30,7 @@ spec:
             #! This is found in deploy/clusters/manifests/tak-app-cr.yaml
             name: #@ "{}-cluster-values".format(data.values.cluster_name)
       paths:
-      - asi-project/apps/vsphere-cloud-controller/manifests
+      - apps/vsphere-cloud-controller/manifests
   deploy:
   - kapp:
       rawOptions:
