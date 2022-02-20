@@ -56,7 +56,7 @@ spec:
         - dhcp4: true
           networkName: VM Network
       numCPUs: 3
-      resourcePool: '*/k8s'
+      resourcePool: #@ data.values.vsphere.server.resource_pool
       server: #@ data.values.vsphere.server.fqdn
       storagePolicyName: ""
       template: #@ data.values.vsphere.instance.template_name
