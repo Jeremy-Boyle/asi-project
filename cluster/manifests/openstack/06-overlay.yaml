@@ -1,5 +1,14 @@
 #@ load("@ytt:overlay", "overlay")
 #@ load("@ytt:data", "data")
+#@ load("@ytt:yaml", "yaml")
+
+#@ def metallb_values():
+configInline:
+  address-pools:
+  - protocol: layer2
+    addresses:
+    - #@ data.values.openstack.network.cidr
+#@ end
 
 #@overlay/match by=overlay.all
 #@overlay/match by=overlay.subset({"kind":"OpenStackMachineTemplate"}),expects="0+"
@@ -42,3 +51,11 @@ metadata:
     kapp.k14s.io/delete-strategy: "orphan"
     kapp.k14s.io/versioned: ""
     kapp.k14s.io/num-versions: "10"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: #@ "{}-metallb-helm-values".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+stringData:
+  values.yaml: #@ yaml.encode(metallb_values())

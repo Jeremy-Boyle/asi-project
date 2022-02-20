@@ -1,0 +1,46 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:yaml", "yaml")
+---
+apiVersion: kappctrl.k14s.io/v1alpha1
+kind: App
+metadata:
+  name: #@ "{}-metallb".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+spec:
+  cluster:
+    kubeconfigSecretRef:
+      name: #@ "{}-kubeconfig".format(data.values.cluster_name)
+      key: value
+  fetch:
+  - helmChart:
+      name: metallb
+      repository:
+        url: https://charts.bitnami.com/bitnami
+      version: "2.6.2"
+
+  template:
+  - helmTemplate:
+      name: metallb
+      namespace: metal-lb
+      valuesFrom:
+      #! This is found in asi-project/cluster/manifests/openstack/06-overlay.yaml
+      - secretRef:
+          name: #@ "{}-metallb-helm-values".format(data.values.cluster_name)
+  - ytt:
+      ignoreUnknownComments: true
+      inline:
+        paths:
+          00-namespace.yaml: |
+            #@ load("@ytt:overlay", "overlay")
+            ---
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              labels:
+                kubernetes.io/metadata.name: metal-lb
+              name: metal-lb
+  deploy:
+  - kapp:
+      rawOptions:
+      - --wait-timeout=5m
+      - --diff-changes=true

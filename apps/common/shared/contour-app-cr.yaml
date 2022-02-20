@@ -1,0 +1,42 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:yaml", "yaml")
+---
+apiVersion: kappctrl.k14s.io/v1alpha1
+kind: App
+metadata:
+  name: #@ "{}-contour".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+spec:
+  cluster:
+    kubeconfigSecretRef:
+      name: #@ "{}-kubeconfig".format(data.values.cluster_name)
+      key: value
+  fetch:
+  - helmChart:
+      name: contour
+      repository:
+        url: https://charts.bitnami.com/bitnami
+      version: "7.3.6"
+
+  template:
+  - helmTemplate:
+      name: contour
+      namespace: contour
+  - ytt:
+      ignoreUnknownComments: true
+      inline:
+        paths:
+          00-namespace.yaml: |
+            #@ load("@ytt:overlay", "overlay")
+            ---
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              labels:
+                kubernetes.io/metadata.name: contour
+              name: contour
+  deploy:
+  - kapp:
+      rawOptions:
+      - --wait-timeout=5m
+      - --diff-changes=true
