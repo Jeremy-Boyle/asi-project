@@ -10,7 +10,7 @@ spec:
   fetch:
   - git:
       url: https://github.com/Jeremy-Boyle/asi-project
-      ref: origin/main
+      ref: origin/dev
       secretRef:
         name: github-token
   template:
@@ -75,7 +75,7 @@ spec:
   fetch:
   - git:
       url: https://github.com/Jeremy-Boyle/asi-project
-      ref: origin/main
+      ref: origin/dev
       secretRef:
         name: github-token
   template:
@@ -91,6 +91,39 @@ spec:
       paths:
       - apps/common/openstack
       - apps/common/shared
+  deploy:
+  - kapp:
+      rawOptions:
+      - --wait-timeout=5m
+      - --diff-changes=true
+---
+apiVersion: kappctrl.k14s.io/v1alpha1
+kind: App
+metadata:
+  name: tools-cluster-stack
+  namespace: kapp-controller
+spec:
+  serviceAccountName: kapp-controller-clusteradmin
+  syncPeriod: 5m
+  paused: false
+  fetch:
+  - git:
+      url: https://github.com/Jeremy-Boyle/asi-project
+      ref: origin/dev
+      secretRef:
+        name: github-token
+  template:
+  - ytt:
+      ignoreUnknownComments: true
+      inline:
+        paths:
+          00-values.yaml: |
+            #@data/values
+            ---
+            cluster_name: tools
+            namespace: openstack
+      paths:
+      - deploy/stack/mgt/tools/manifests
   deploy:
   - kapp:
       rawOptions:

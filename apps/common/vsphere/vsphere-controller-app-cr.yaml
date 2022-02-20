@@ -15,7 +15,7 @@ spec:
   fetch:
   - git:
       url: https://github.com/Jeremy-Boyle/asi-project
-      ref: origin/main
+      ref: origin/dev
       secretRef:
         name: github-token
   template:
