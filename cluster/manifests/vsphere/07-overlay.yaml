@@ -1,0 +1,49 @@
+#@ load("@ytt:overlay", "overlay")
+#@ load("@ytt:data", "data")
+
+#@overlay/match by=overlay.all
+#@overlay/match by=overlay.subset({"kind":"VSphereMachineTemplate"}),expects="0+"
+---
+metadata:
+  #@overlay/match missing_ok=True
+  annotations:
+    kapp.k14s.io/delete-strategy: "orphan"
+    kapp.k14s.io/versioned: ""
+    kapp.k14s.io/num-versions: "10"
+
+#@overlay/match by=overlay.subset({"kind":"VSphereCluster"}),expects="0+"
+---
+metadata:
+  #@overlay/match missing_ok=True
+  annotations:
+    #@overlay/match missing_ok=True
+    kapp.k14s.io/delete-strategy: "orphan"
+
+#@overlay/match by=overlay.subset({"kind":"KubeadmControlPlane"}),expects="0+"
+---
+metadata:
+  #@overlay/match missing_ok=True
+  annotations:
+    kapp.k14s.io/delete-strategy: "orphan"
+
+#@overlay/match by=overlay.subset({"kind":"KubeadmConfigTemplate"}),expects="0+"
+---
+metadata:
+  #@overlay/match missing_ok=True
+  annotations:
+    kapp.k14s.io/delete-strategy: "orphan"
+    kapp.k14s.io/versioned: ""
+    kapp.k14s.io/num-versions: "10"
+
+#! Dont override metal-lb this is need for kapp to work properly
+#@ not_metallb = overlay.not_op(overlay.subset({ "kind": "Secret", "metadata": { "name": data.values.cluster_name+"-metallb-helm-values" }}))
+#@ secret = overlay.subset({ "kind": "Secret"})
+
+#@overlay/match by=overlay.and_op(not_metallb, secret),expects="1+"
+---
+metadata:
+  #@overlay/match missing_ok=True
+  annotations:
+    kapp.k14s.io/delete-strategy: "orphan"
+    kapp.k14s.io/versioned: ""
+    kapp.k14s.io/num-versions: "10"

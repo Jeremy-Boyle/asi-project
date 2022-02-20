@@ -1,0 +1,112 @@
+#@ load("@ytt:overlay", "overlay")
+#@ load("@ytt:data", "data")
+---
+apiVersion: kapp.k14s.io/v1alpha1
+kind: Config
+minimumRequiredVersion: 0.34.0
+
+# This section makes sure that kapp passes on the necessary kapp labels to derived Cluster API resources.
+# Missing this section would mean that follow-on objects created by Cluster API would be missed in kapp inspect calls.
+templateRules:
+- resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: infrastructure.cluster.x-k8s.io/v1beta1, kind: VSphereMachineTemplate}
+  affectedResources:
+    objectReferences:
+    - path: [spec, machineTemplate, infrastructureRef]
+      resourceMatchers:
+      - apiVersionKindMatcher: {apiVersion: controlplane.cluster.x-k8s.io/v1beta1, kind: KubeadmControlPlane}
+- resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: infrastructure.cluster.x-k8s.io/v1beta1, kind: VSphereMachineTemplate}
+  affectedResources:
+    objectReferences:
+    - path: [spec, template, spec, infrastructureRef]
+      resourceMatchers:
+      - apiVersionKindMatcher: {apiVersion: cluster.x-k8s.io/v1beta1, kind: MachineDeployment}
+- resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: bootstrap.cluster.x-k8s.io/v1beta1, kind: KubeadmConfigTemplate}
+  affectedResources:
+    objectReferences:
+    - path: [spec, template, spec, bootstrap, configRef]
+      resourceMatchers:
+      - apiVersionKindMatcher: {apiVersion: cluster.x-k8s.io/v1beta1, kind: MachineDeployment}
+
+# Secret Config File Changes
+- resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: v1, kind: Secret}
+  affectedResources:
+    objectReferences:
+    - path: [spec, template, spec, identityRef]
+      resourceMatchers:
+      - apiVersionKindMatcher: {apiVersion: infrastructure.cluster.x-k8s.io/v1beta1, kind: VSphereMachineTemplate}
+    - path: [spec, identityRef]
+      resourceMatchers:
+      - apiVersionKindMatcher: {apiVersion: infrastructure.cluster.x-k8s.io/v1beta1, kind: VSphereCluster}
+
+# This section handles the quasi-declarative nature of Cluster API, where sometimes spec fields are modified
+#   rather than just the status section.  Missing this section would break clusters, as kapp will continually
+#   revert fields populated by Cluster API, causing a viscious cycle of
+rebaseRules:
+
+#! cluster
+- path: [spec, controlPlaneEndpoint]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: cluster.x-k8s.io/v1beta1, kind: Cluster}
+
+#! cluster
+- paths:
+  - [spec, controlPlaneEndpoint]
+  - [spec, network]
+  - [spec, subnet]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: infrastructure.cluster.x-k8s.io/v1beta1, kind: VSphereCluster }
+
+#! control plane
+- path: [metadata, labels, cluster.x-k8s.io/cluster-name]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: controlplane.cluster.x-k8s.io/v1beta1, kind: KubeadmControlPlane}
+
+#! machine dep
+- paths:
+  - [metadata, labels, cluster.x-k8s.io/cluster-name]
+  - [metadata, annotations, machinedeployment.clusters.x-k8s.io/revision]
+  - [spec, template, metadata, labels, cluster.x-k8s.io/cluster-name]
+  - [spec, template, metadata, labels, cluster.x-k8s.io/deployment-name]
+  type: copy
+  sources: [new, existing]
+  resourceMatchers:
+  - apiVersionKindMatcher: {apiVersion: cluster.x-k8s.io/v1beta1, kind: MachineDeployment}
+
+#! Ignore Machine Deployments that are set to autoscaling
+- paths:
+  - [spec, replicas]
+  type: copy
+  sources: [existing]
+  resourceMatchers:
+  - hasAnnotationMatcher:
+      keys:
+      - cluster.k8s.io/cluster-api-autoscaler-node-group-min-size
+
+changeGroupBindings:
+- name: cluster.x-k8s.io/cluster-resources
+  resourceMatchers: &clusterresources
+  - apiGroupKindMatcher: {kind: Cluster, apiGroup: cluster.x-k8s.io}
+  - apiGroupKindMatcher: {kind: MachineDeployment, apiGroup: cluster.x-k8s.io}
+  - apiGroupKindMatcher: {kind: MachineHealthCheck, apiGroup: cluster.x-k8s.io}
+  - apiGroupKindMatcher: {kind: VSphereCluster, apiGroup: infrastructure.cluster.x-k8s.io}
+  - apiGroupKindMatcher: {kind: VSphereMachineTemplate, apiGroup: infrastructure.cluster.x-k8s.io}
+  - apiGroupKindMatcher: {kind: KubeadmControlPlane, apiGroup: controlplane.x-k8s.io}
+  - apiGroupKindMatcher: {kind: KubeadmConfigTemplate, apiGroup: bootstrap.cluster.x-k8s.io}
+
+changeRuleBindings:
+- rules:
+  #! [Note]: Make sure to delete the remote app CR prior to deleting the cluster
+  - "delete before deleting change-groups.kapp.k14s.io/pod-related"
+  - "delete before deleting cluster.x-k8s.io/cluster-resources"
+  resourceMatchers:
+  - apiGroupKindMatcher: {kind: App, apiGroup: kappctrl.k14s.io }

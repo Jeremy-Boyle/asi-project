@@ -1,0 +1,90 @@
+#@ load("@ytt:data", "data")
+
+#@ def label_worker():
+- kubectl --kubeconfig /etc/kubernetes/kubelet.conf label node {{ local_hostname }} node-role.kubernetes.io/worker= --overwrite=true
+#@ end
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: MachineDeployment
+metadata:
+  name: #@ "{}-md".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+spec:
+  clusterName: #@ data.values.cluster_name
+  replicas: #@ data.values.worker_node.replicas
+  minReadySeconds: 0
+  progressDeadlineSeconds: 600
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      cluster.x-k8s.io/cluster-name: #@ data.values.cluster_name
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    spec:
+      bootstrap:
+        configRef:
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+          kind: KubeadmConfigTemplate
+          name: #@ "{}-md".format(data.values.cluster_name)
+      clusterName: #@ data.values.cluster_name
+      infrastructureRef:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+        kind: VSphereMachineTemplate
+        name: #@ "{}-md".format(data.values.cluster_name)
+      version: #@ data.values.k8s.version
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: VSphereMachineTemplate
+metadata:
+  name: #@ "{}-md".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+spec:
+  template:
+    spec:
+      cloneMode: linkedClone
+      datacenter: #@ data.values.vsphere.server.datacenter
+      datastore: #@ data.values.vsphere.server.datastore
+      diskGiB: #@ data.values.image.disk_size
+      folder: #@ data.values.vsphere.server.folder
+      memoryMiB: 8192
+      network:
+        devices:
+        - dhcp4: true
+          networkName: VM Network
+      numCPUs: 3
+      resourcePool: '*/k8s'
+      server: #@ data.values.vsphere.server.fqdn
+      storagePolicyName: ""
+      template: #@ data.values.vsphere.instance.template_name
+      thumbprint: #@ data.values.vsphere.server.tls_sha
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+kind: KubeadmConfigTemplate
+metadata:
+  name: #@ "{}-md".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+spec:
+  template:
+    spec:
+      joinConfiguration:
+        nodeRegistration:
+          criSocket: /var/run/containerd/containerd.sock
+          kubeletExtraArgs:
+            cloud-provider: external
+          name: '{{ ds.meta_data.hostname }}'
+      preKubeadmCommands:
+      - hostname "{{ ds.meta_data.hostname }}"
+      - echo "::1         ipv6-localhost ipv6-loopback" >/etc/hosts
+      - echo "127.0.0.1   localhost" >>/etc/hosts
+      - echo "127.0.0.1   {{ ds.meta_data.hostname }}" >>/etc/hosts
+      - echo "{{ ds.meta_data.hostname }}" >/etc/hostname
+      users:
+      - name: capv
+        sshAuthorizedKeys:
+        - #@ data.values.vsphere.ssh_key.value
+        sudo: ALL=(ALL) NOPASSWD:ALL
+      postKubeadmCommands: #@ label_worker()

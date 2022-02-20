@@ -1,0 +1,97 @@
+apiVersion: kappctrl.k14s.io/v1alpha1
+kind: App
+metadata:
+  name: tak-cluster
+  namespace: kapp-controller
+spec:
+  serviceAccountName: kapp-controller-clusteradmin
+  syncPeriod: 5m
+  paused: false
+  fetch:
+  - git:
+      url: https://github.com/Jeremy-Boyle/asi-project
+      ref: origin/main
+      secretRef:
+        name: github-token
+  template:
+  - ytt:
+      ignoreUnknownComments: true
+      inline:
+        pathsFrom:
+        - secretRef:
+            #! This is found in deploy/clusters/secrets/vsphere/vsphere-cluster-secret.sops.yaml
+            name: vsphere-cluster-secrets
+        - secretRef:
+            #! This is found in deploy/clusters/secrets/vsphere/vsphere-cluster-secret.sops.yaml
+            name: shared-cluster-secrets
+        paths:
+          00-additional-values.yaml: |
+            #@data/values
+            ---
+            #@overlay/match missing_ok=True
+            cluster_name: tak
+
+            #@overlay/match missing_ok=True
+            create_ns: "False"
+
+            #@overlay/match missing_ok=True
+            mgt_cluster: "False"
+
+            #@overlay/match missing_ok=True
+            namespace: vsphere
+
+            #@overlay/match missing_ok=True
+            control_plane:
+              endpoint: 192.168.1.99
+              replicas: 1
+
+            #@overlay/match missing_ok=True
+            worker_node:
+              replicas: 2
+
+            vsphere:
+              #@overlay/match missing_ok=True
+              network:
+                #@overlay/match missing_ok=True
+                lb_cidr: "192.168.1.110-192.168.1.112"
+      paths:
+      - cluster/manifests/vsphere
+  deploy:
+  - kapp:
+      rawOptions:
+      - --wait-timeout=5m
+      - --diff-changes=true
+---
+apiVersion: kappctrl.k14s.io/v1alpha1
+kind: App
+metadata:
+  name: tak-cluster-common-apps
+  namespace: kapp-controller
+spec:
+  serviceAccountName: kapp-controller-clusteradmin
+  syncPeriod: 5m
+  paused: false
+  fetch:
+  - git:
+      url: https://github.com/Jeremy-Boyle/asi-project
+      ref: origin/main
+      secretRef:
+        name: github-token
+  template:
+  - ytt:
+      ignoreUnknownComments: true
+      inline:
+        paths:
+          00-values.yaml: |
+            #@data/values
+            ---
+            cluster_name: tak
+            namespace: vsphere
+      paths:
+      - apps/common/vsphere
+      - apps/common/shared
+  deploy:
+  - kapp:
+      rawOptions:
+      - --wait-timeout=5m
+      - --diff-changes=true

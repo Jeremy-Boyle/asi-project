@@ -1,0 +1,22 @@
+
+#@ load("@ytt:data", "data")
+#@ load("@ytt:yaml", "yaml")
+
+#@ def metallb_values():
+configInline:
+  address-pools:
+  - name: generic-cluster-pool
+    protocol: layer2
+    addresses:
+    - #@ data.values.vsphere.network.lb_cidr
+#@ end
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: #@ "{}-metallb-helm-values".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+  annotations:
+    kapp.k14s.io/delete-strategy: "orphan"
+stringData:
+  values.yaml: #@ yaml.encode(metallb_values())

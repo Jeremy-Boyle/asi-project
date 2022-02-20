@@ -1,0 +1,40 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: Cluster
+metadata:
+  name: #@ data.values.cluster_name
+  namespace: #@ data.values.namespace
+  labels:
+    cni: vsphere-openstack
+spec:
+  clusterNetwork:
+    pods:
+      cidrBlocks:
+      - 10.244.0.0/16
+    serviceDomain: cluster.local
+  controlPlaneRef:
+    apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+    kind: KubeadmControlPlane
+    name: #@ "{}-control-plane".format(data.values.cluster_name)
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+    kind: VSphereCluster
+    name: #@ data.values.cluster_name
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: VSphereCluster
+metadata:
+  name: #@ data.values.cluster_name
+  namespace: #@ data.values.namespace
+  labels:
+    cluster.x-k8s.io/cluster-name: #@ data.values.cluster_name
+spec:
+  controlPlaneEndpoint:
+    host: #@ data.values.vsphere.control_plane.endpoint
+    port: 6443
+  identityRef:
+    kind: Secret
+    name: #@ data.values.cluster_name
+  server: #@ data.values.vsphere.server.fqdn
+  thumbprint: #@ data.values.vsphere.server.tls_sha

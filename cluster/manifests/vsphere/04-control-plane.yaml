@@ -1,0 +1,124 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:yaml", "yaml")
+
+---
+#@ def kube_vip():
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kube-vip
+  namespace: kube-system
+spec:
+  containers:
+  - args:
+    - start
+    env:
+    - name: vip_arp
+      value: "true"
+    - name: vip_leaderelection
+      value: "true"
+    - name: vip_address
+      value: #@ data.values.vsphere.control_plane.endpoint
+    - name: vip_interface
+      value: eth0
+    - name: vip_leaseduration
+      value: "15"
+    - name: vip_renewdeadline
+      value: "10"
+    - name: vip_retryperiod
+      value: "2"
+    image: ghcr.io/kube-vip/kube-vip:v0.3.5
+    imagePullPolicy: IfNotPresent
+    name: kube-vip
+    resources: {}
+    securityContext:
+      capabilities:
+        add:
+        - NET_ADMIN
+        - SYS_TIME
+    volumeMounts:
+    - mountPath: /etc/kubernetes/admin.conf
+      name: kubeconfig
+  hostNetwork: true
+  volumes:
+  - hostPath:
+      path: /etc/kubernetes/admin.conf
+      type: FileOrCreate
+    name: kubeconfig
+status: {}
+#@ end
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+kind: KubeadmControlPlane
+metadata:
+  name: #@ "{}-control-plane".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+spec:
+  kubeadmConfigSpec:
+    clusterConfiguration:
+      apiServer:
+        extraArgs:
+          cloud-provider: external
+      controllerManager:
+        extraArgs:
+          cloud-provider: external
+    files:
+    - content: #@ yaml.encode(kube_vip())
+      owner: root:root
+      path: /etc/kubernetes/manifests/kube-vip.yaml
+    initConfiguration:
+      nodeRegistration:
+        criSocket: /var/run/containerd/containerd.sock
+        kubeletExtraArgs:
+          cloud-provider: external
+        name: '{{ ds.meta_data.hostname }}'
+    joinConfiguration:
+      nodeRegistration:
+        criSocket: /var/run/containerd/containerd.sock
+        kubeletExtraArgs:
+          cloud-provider: external
+        name: '{{ ds.meta_data.hostname }}'
+    preKubeadmCommands:
+    - hostname "{{ ds.meta_data.hostname }}"
+    - echo "::1         ipv6-localhost ipv6-loopback" >/etc/hosts
+    - echo "127.0.0.1   localhost" >>/etc/hosts
+    - echo "127.0.0.1   {{ ds.meta_data.hostname }}" >>/etc/hosts
+    - echo "{{ ds.meta_data.hostname }}" >/etc/hostname
+    useExperimentalRetryJoin: true
+    users:
+    - name: capv
+      sshAuthorizedKeys:
+      - #@ data.values.vsphere.ssh_key.value
+      sudo: ALL=(ALL) NOPASSWD:ALL
+  machineTemplate:
+    infrastructureRef:
+      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: VSphereMachineTemplate
+      name: #@ "{}-control-plane".format(data.values.cluster_name)
+  replicas: #@ data.values.control_plane.replicas
+  version: #@ data.values.k8s.version
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: VSphereMachineTemplate
+metadata:
+  name: #@ "{}-control-plane".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+spec:
+  template:
+    spec:
+      cloneMode: linkedClone
+      datacenter: #@ data.values.vsphere.server.datacenter
+      datastore: #@ data.values.vsphere.server.datastore
+      diskGiB: #@ data.values.image.disk_size
+      folder: #@ data.values.vsphere.server.folder
+      memoryMiB: 8192
+      network:
+        devices:
+        - dhcp4: true
+          networkName: #@ data.values.vsphere.network.name
+      numCPUs: 3
+      resourcePool: #@ data.values.vsphere.server.resource_pool
+      server: #@ data.values.vsphere.server.fqdn
+      storagePolicyName: ""
+      template: #@ data.values.vsphere.instance.template_name
+      thumbprint: #@ data.values.vsphere.server.tls_sha
