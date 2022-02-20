@@ -8,7 +8,7 @@ configInline:
   - name: generic-cluster-pool
     protocol: layer2
     addresses:
-    - #@ data.values.openstack.network.cidr
+    - #@ data.values.openstack.network.lb_cidr
 #@ end
 ---
 apiVersion: v1
