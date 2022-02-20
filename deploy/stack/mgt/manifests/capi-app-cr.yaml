@@ -16,6 +16,10 @@ spec:
   template:
   - ytt:
       ignoreUnknownComments: true
+      inline:
+        - secretRef:
+            #! This is found in asi-project/deploy/clusters/secrets/vsphere/vpshere-cluster-secret.platform-ops.sops.yaml
+            name: vsphere-cluster-secrets
       paths:
       - apps/cluster-api/capi/manifests
       - apps/cluster-api/capa/manifests
