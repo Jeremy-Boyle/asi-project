@@ -1,14 +1,5 @@
 #@ load("@ytt:overlay", "overlay")
 #@ load("@ytt:data", "data")
-#@ load("@ytt:yaml", "yaml")
-
-#@ def metallb_values():
-configInline:
-  address-pools:
-  - protocol: layer2
-    addresses:
-    - #@ data.values.openstack.network.cidr
-#@ end
 
 #@overlay/match by=overlay.all
 #@overlay/match by=overlay.subset({"kind":"OpenStackMachineTemplate"}),expects="0+"
@@ -43,7 +34,12 @@ metadata:
     kapp.k14s.io/delete-strategy: "orphan"
     kapp.k14s.io/versioned: ""
     kapp.k14s.io/num-versions: "10"
-#@overlay/match by=overlay.subset({"kind":"Secret"}),expects="0+"
+
+#! Dont override metal-lb this is need for kapp to work properly
+#@ not_metallb = overlay.not_op(overlay.subset({ "kind": "Secret", "metadata": { "name": data.values.cluster_name+"-metallb-helm-values" }}))
+#@ secret = overlay.subset({ "kind": "Secret"})
+
+#@overlay/match by=overlay.and_op(not_metallb, secret),expects="1+"
 ---
 metadata:
   #@overlay/match missing_ok=True
@@ -51,11 +47,3 @@ metadata:
     kapp.k14s.io/delete-strategy: "orphan"
     kapp.k14s.io/versioned: ""
     kapp.k14s.io/num-versions: "10"
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: #@ "{}-metallb-helm-values".format(data.values.cluster_name)
-  namespace: #@ data.values.namespace
-stringData:
-  values.yaml: #@ yaml.encode(metallb_values())
