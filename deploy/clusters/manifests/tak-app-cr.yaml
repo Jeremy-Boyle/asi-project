@@ -47,7 +47,11 @@ spec:
 
             #@overlay/match missing_ok=True
             worker_node:
-              replicas: 2
+              replicas: 1
+
+            #@overlay/match missing_ok=True
+            image:
+              disk_size: 80
 
             vsphere:
               #@overlay/match missing_ok=True
