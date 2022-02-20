@@ -4,7 +4,7 @@
 apiVersion: kappctrl.k14s.io/v1alpha1
 kind: App
 metadata:
-  name: #@ "{}-contour".format(data.values.cluster_name)
+  name: #@ "{}-nginx-ingress-controller".format(data.values.cluster_name)
   namespace: #@ data.values.namespace
 spec:
   cluster:
@@ -15,15 +15,15 @@ spec:
   paused: false
   fetch:
   - helmChart:
-      name: contour
+      name: nginx-ingress-controller
       repository:
         url: https://charts.bitnami.com/bitnami
-      version: "7.3.6"
+      version: "9.1.5"
 
   template:
   - helmTemplate:
-      name: contour
-      namespace: projectcontour
+      name: nginx-ingress-controller
+      namespace: nginx-ingress-controller
 
   - ytt:
       ignoreUnknownComments: true
@@ -36,8 +36,8 @@ spec:
             kind: Namespace
             metadata:
               labels:
-                kubernetes.io/metadata.name: projectcontour
-              name: projectcontour
+                kubernetes.io/metadata.name: nginx-ingress-controller
+              name: nginx-ingress-controller
 
 
             #@ servicemonitor = overlay.subset({"kind": "ServiceMonitor"})
@@ -48,7 +48,7 @@ spec:
             #@overlay/match missing_ok=True
             metadata:
               #@overlay/match missing_ok=True
-              namespace: projectcontour
+              namespace: nginx-ingress-controller
   deploy:
   - kapp:
       rawOptions:
