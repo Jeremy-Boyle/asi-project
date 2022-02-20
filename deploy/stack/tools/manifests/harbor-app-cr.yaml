@@ -50,6 +50,12 @@ spec:
               #@overlay/match missing_ok=True
               namespace: harbor
 
+            #@overlay/match by=overlay.subset({"kind": "Ingress"}),expects="1+"
+            ---
+            spec:
+              #@overlay/match missing_ok=True
+              ingressClassName: nginx
+
   deploy:
   - kapp:
       rawOptions:
