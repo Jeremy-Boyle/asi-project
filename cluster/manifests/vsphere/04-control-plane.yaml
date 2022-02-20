@@ -116,6 +116,7 @@ spec:
         devices:
         - dhcp4: true
           networkName: #@ data.values.vsphere.network.name
+          nameservers: 8.8.8.8
       numCPUs: 3
       resourcePool: #@ data.values.vsphere.server.resource_pool
       server: #@ data.values.vsphere.server.fqdn
