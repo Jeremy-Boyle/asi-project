@@ -5,7 +5,8 @@
 #@ def metallb_values():
 configInline:
   address-pools:
-  - protocol: layer2
+  - name: generic-cluster-pool
+    protocol: layer2
     addresses:
     - #@ data.values.openstack.network.cidr
 #@ end
