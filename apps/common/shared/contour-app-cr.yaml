@@ -1,6 +1,22 @@
 #@ load("@ytt:data", "data")
 #@ load("@ytt:yaml", "yaml")
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: #@ "{}-contour-helm-values".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+stringData:
+  values.yaml: |
+    configInline:
+    disablePermitInsecure: false
+    tls:
+      fallback-certificate: {}
+    leaderelection:
+      configmap-namespace: "contour"
+    envoy-service-name: 'contour-envoy'
+    accesslog-format: envoy
+---
 apiVersion: kappctrl.k14s.io/v1alpha1
 kind: App
 metadata:
@@ -24,6 +40,10 @@ spec:
   - helmTemplate:
       name: contour
       namespace: contour
+      valuesFrom:
+      - secretRef:
+          name: #@ "{}-contour-helm-values".format(data.values.cluster_name)
+
   - ytt:
       ignoreUnknownComments: true
       inline:
