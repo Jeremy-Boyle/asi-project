@@ -31,7 +31,7 @@ metadata:
     cluster.x-k8s.io/cluster-name: #@ data.values.cluster_name
 spec:
   controlPlaneEndpoint:
-    host: #@ data.values.vsphere.control_plane.endpoint
+    host: #@ data.values.control_plane.endpoint
     port: 6443
   identityRef:
     kind: Secret
