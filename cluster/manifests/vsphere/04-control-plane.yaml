@@ -18,7 +18,7 @@ spec:
     - name: vip_leaderelection
       value: "true"
     - name: vip_address
-      value: #@ data.values.vsphere.control_plane.endpoint
+      value: #@ data.values.control_plane.endpoint
     - name: vip_interface
       value: eth0
     - name: vip_leaseduration
