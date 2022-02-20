@@ -57,6 +57,17 @@ spec:
               labels:
                 kubernetes.io/metadata.name: contour
               name: contour
+
+
+              #@ servicemonitor = overlay.subset({"kind": "ServiceMonitor"})
+              #@ namespace = overlay.subset({"kind": "Namespace"})
+              #@ crd = overlay.subset({"kind": "CustomResourceDefinition"})
+              #@overlay/match by=overlay.not_op(overlay.or_op(servicemonitor, namespace, crd)),expects="0+"
+              ---
+              #@overlay/match missing_ok=True
+              metadata:
+                #@overlay/match missing_ok=True
+                namespace: contour
   deploy:
   - kapp:
       rawOptions:
