@@ -54,7 +54,7 @@ spec:
                 #@overlay/match missing_ok=True
                 cidr: "10.0.2.0/24"
                 #@overlay/match missing_ok=True
-                lb_cidr: "10.0.2.2-10.0.2.245"
+                lb_cidr: "10.0.2.100-10.0.2.110"
       paths:
       - cluster/manifests/openstack
   deploy:
