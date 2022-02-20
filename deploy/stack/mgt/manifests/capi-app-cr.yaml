@@ -17,6 +17,7 @@ spec:
   - ytt:
       ignoreUnknownComments: true
       inline:
+        pathsFrom:
         - secretRef:
             #! This is found in asi-project/deploy/clusters/secrets/vsphere/vpshere-cluster-secret.platform-ops.sops.yaml
             name: vsphere-cluster-secrets
