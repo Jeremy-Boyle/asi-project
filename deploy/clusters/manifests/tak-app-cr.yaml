@@ -87,6 +87,17 @@ spec:
             ---
             cluster_name: tak
             namespace: vsphere
+          00-cluster-secret.yaml: |
+            apiVersion: v1
+            kind: Secret
+            metadata:
+              name: tak-cluster-values
+              namespace: vsphere
+            stringData:
+              00-tak-cluster-values.yaml: |-
+                #@data/values
+                ---
+                cluster_name: tak
       paths:
       - apps/common/vsphere
       - apps/common/shared

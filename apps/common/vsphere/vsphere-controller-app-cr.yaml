@@ -26,6 +26,9 @@ spec:
         - secretRef:
             #! This is found in deploy/clusters/secrets/vsphere/vsphere-cluster-secret.platform-ops.sops.yaml
             name: vsphere-cluster-secrets
+        - secretRef:
+            #! This is found in deploy/clusters/manifests/tak-app-cr.yaml
+            name: #@ "{}-cluster-values".format(data.values.cluster_name)
       paths:
       - asi-project/apps/vsphere-cloud-controller/manifests
   deploy:
