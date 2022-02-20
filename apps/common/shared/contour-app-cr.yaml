@@ -1,22 +1,6 @@
 #@ load("@ytt:data", "data")
 #@ load("@ytt:yaml", "yaml")
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: #@ "{}-contour-helm-values".format(data.values.cluster_name)
-  namespace: #@ data.values.namespace
-stringData:
-  values.yaml: |
-    configInline:
-      disablePermitInsecure: false
-      tls:
-        fallback-certificate: {}
-      leaderelection:
-        configmap-namespace: "contour"
-      envoy-service-name: 'contour-envoy'
-      accesslog-format: envoy
----
 apiVersion: kappctrl.k14s.io/v1alpha1
 kind: App
 metadata:
@@ -39,7 +23,7 @@ spec:
   template:
   - helmTemplate:
       name: contour
-      namespace: contour
+      namespace: projectcontour
       valuesFrom:
       - secretRef:
           name: #@ "{}-contour-helm-values".format(data.values.cluster_name)
@@ -55,8 +39,8 @@ spec:
             kind: Namespace
             metadata:
               labels:
-                kubernetes.io/metadata.name: contour
-              name: contour
+                kubernetes.io/metadata.name: projectcontour
+              name: projectcontour
 
 
             #@ servicemonitor = overlay.subset({"kind": "ServiceMonitor"})
@@ -67,7 +51,7 @@ spec:
             #@overlay/match missing_ok=True
             metadata:
               #@overlay/match missing_ok=True
-              namespace: contour
+              namespace: projectcontour
   deploy:
   - kapp:
       rawOptions:
