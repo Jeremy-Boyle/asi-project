@@ -24,9 +24,6 @@ spec:
   - helmTemplate:
       name: contour
       namespace: projectcontour
-      valuesFrom:
-      - secretRef:
-          name: #@ "{}-contour-helm-values".format(data.values.cluster_name)
 
   - ytt:
       ignoreUnknownComments: true
