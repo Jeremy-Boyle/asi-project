@@ -6,7 +6,6 @@ metadata:
 spec:
   serviceAccountName: kapp-controller-clusteradmin
   syncPeriod: 5m
-  syncPeriod: 5m
   paused: false
   fetch:
   - git:
