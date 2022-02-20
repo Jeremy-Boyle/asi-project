@@ -123,7 +123,7 @@ spec:
             cluster_name: tools
             namespace: openstack
       paths:
-      - deploy/stack/mgt/tools/manifests
+      - deploy/stack/tools/manifests
   deploy:
   - kapp:
       rawOptions:
