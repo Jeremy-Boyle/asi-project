@@ -23,6 +23,7 @@ metadata:
         }
   name: ingress
 spec:
+  ingressClassName: nginx
   tls:
   - hosts:
     - #@ data.values.ingress.fqdn
