@@ -5,7 +5,7 @@ kind: Deployment
 metadata:
   labels:
     component: uptime-kuma
-  name: uptime-kuma
+  name: uptime
   namespace: #@ data.values.namespace
 spec:
   selector:
