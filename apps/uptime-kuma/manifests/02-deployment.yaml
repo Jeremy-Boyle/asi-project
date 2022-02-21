@@ -4,20 +4,20 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    component: uptime-kuma
-  name: uptime
+    component: uptime-bot
+  name: uptime-bot
   namespace: #@ data.values.namespace
 spec:
   selector:
     matchLabels:
-      component: uptime-kuma
+      component: uptime-bot
   replicas: 1
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        component: uptime-kuma
+        component: uptime-bot
     spec:
       containers:
         - name: app

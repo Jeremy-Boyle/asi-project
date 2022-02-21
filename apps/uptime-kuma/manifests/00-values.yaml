@@ -1,6 +1,6 @@
 #@data/values
 ---
-namespace: uptime-kuma
+namespace: uptime-bot
 
 ingress:
   fqdn: uptime.platform-ops.com
