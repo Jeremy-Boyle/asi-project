@@ -3,19 +3,19 @@
 apiVersion: kappctrl.k14s.io/v1alpha1
 kind: App
 metadata:
-  name: #@ "{}-tak-server".format(data.values.cluster_name)
-  namespace: #@ data.values.namespace
+  name: tak-server
+  namespace: aws
 spec:
   cluster:
     kubeconfigSecretRef:
-      name: #@ "{}-kubeconfig".format(data.values.cluster_name)
+      name: tak-kubeconfig
       key: value
   syncPeriod: 5m
   paused: false
   fetch:
   - git:
-      url: https://gitlab.create.army.mil/jeremy.t.boyle2.mil/TAK-Kubernetes
-      ref: origin/master
+      url: https://gitlab.create.army.mil/jeremy.t.boyle2.mil/TAK-Kubernetes/
+      ref: origin/dev
       secretRef:
         name: create-token
   template:
@@ -24,7 +24,7 @@ spec:
       inline:
         pathsFrom:
         - secretRef:
-            #! This is found in asi-project/deploy/stack/tak/secrets/tak-secrets.platform-ops.sops.yaml
+            #! This is found in deploy/stack/tak/secrets/tak-secrets.platform-ops.sops.yaml
             name: tak-ytt-values
       paths:
       - deploy/manifests
