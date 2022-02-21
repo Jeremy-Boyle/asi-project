@@ -25,21 +25,21 @@ metadata:
   namepsace: #@ data.values.namespace
 spec:
   ingressClassName: nginx
-  tls:
-  - hosts:
-    - #@ data.values.ingress.fqdn
-    secretName: uptime-service-cert
   rules:
-  - host: #@ data.values.ingress.fqdn
+  - host: uptime.platform-ops.com
     http:
       paths:
-      - path: /
-        pathType: Prefix
-        backend:
+      - backend:
           service:
-            name: service
+            name: uptime-kuma
             port:
               number: 3001
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - auth.platform-ops.com
+    secretName: uptime-service-cert
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
