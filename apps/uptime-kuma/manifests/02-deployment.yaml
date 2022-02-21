@@ -19,6 +19,10 @@ spec:
       labels:
         component: uptime-bot
     spec:
+      dnsPolicy: "None"
+      dnsConfig:
+        nameservers:
+        - 1.2.3.4
       containers:
         - name: app
           image: louislam/uptime-kuma:1.11.4
@@ -40,7 +44,6 @@ spec:
               path: /
               port: 3001
               scheme: HTTP
-
       volumes:
         - name: storage
           persistentVolumeClaim:
