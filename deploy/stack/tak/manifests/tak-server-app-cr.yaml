@@ -1,0 +1,30 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: kappctrl.k14s.io/v1alpha1
+kind: App
+metadata:
+  name: #@ "{}-tak-server".format(data.values.cluster_name)
+  namespace: #@ data.values.namespace
+spec:
+  cluster:
+    kubeconfigSecretRef:
+      name: #@ "{}-kubeconfig".format(data.values.cluster_name)
+      key: value
+  syncPeriod: 5m
+  paused: false
+  fetch:
+  - git:
+      url: https://gitlab.create.army.mil/jeremy.t.boyle2.mil/TAK-Kubernetes
+      ref: origin/master
+      secretRef:
+        name: create-token
+  template:
+  - ytt:
+      ignoreUnknownComments: true
+      paths:
+      - deploy/manifests
+  deploy:
+  - kapp:
+      rawOptions:
+      - --wait-timeout=5m
+      - --diff-changes=true
