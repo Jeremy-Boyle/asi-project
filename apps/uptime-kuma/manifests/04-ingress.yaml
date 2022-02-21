@@ -25,7 +25,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: uptime.platform-ops.com
+  - host: #@ data.values.ingress.fqdn
     http:
       paths:
       - backend:
@@ -37,7 +37,7 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - auth.platform-ops.com
+    - #@ data.values.ingress.fqdn
     secretName: uptime-service-cert
 ---
 apiVersion: cert-manager.io/v1
