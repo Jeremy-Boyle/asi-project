@@ -3,7 +3,7 @@
 apiVersion: kappctrl.k14s.io/v1alpha1
 kind: App
 metadata:
-  name: #@ "{}-keycloak".format(data.values.cluster_name)
+  name: #@ "{}-uptime-kuma".format(data.values.cluster_name)
   namespace: #@ data.values.namespace
 spec:
   cluster:
