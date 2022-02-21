@@ -21,6 +21,11 @@ spec:
   template:
   - ytt:
       ignoreUnknownComments: true
+      inline:
+        pathsFrom:
+        - secretRef:
+            #! This is found in asi-project/deploy/stack/tak/secrets/tak-secrets.platform-ops.sops.yaml
+            name: tak-ytt-values
       paths:
       - deploy/manifests
   deploy:
