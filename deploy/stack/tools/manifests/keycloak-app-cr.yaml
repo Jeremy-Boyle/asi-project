@@ -10,7 +10,7 @@ spec:
     kubeconfigSecretRef:
       name: #@ "{}-kubeconfig".format(data.values.cluster_name)
       key: value
-  syncPeriod: 60m
+  syncPeriod: 5m
   paused: false
   fetch:
   - helmChart:
