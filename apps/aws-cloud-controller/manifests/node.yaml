@@ -4,6 +4,7 @@
 kind: DaemonSet
 apiVersion: apps/v1
 metadata:
+  namespace: kube-system
   name: ebs-csi-node
   labels:
     app.kubernetes.io/name: aws-ebs-csi-driver
