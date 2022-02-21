@@ -21,7 +21,7 @@ metadata:
         proxy_cache_bypass $http_upgrade;
         }
   name: uptime-kuma
-  namepsace: #@ data.values.namespace
+  namepsace: uptime-kuma
 spec:
   ingressClassName: nginx
   rules:
