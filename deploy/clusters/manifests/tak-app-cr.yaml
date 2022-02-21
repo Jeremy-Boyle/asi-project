@@ -47,7 +47,7 @@ spec:
 
             #@overlay/match missing_ok=True
             worker_node:
-              replicas: 1
+              replicas: 2
 
             #@overlay/match missing_ok=True
             image:
