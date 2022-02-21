@@ -42,7 +42,7 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: keycloak-serving-cert
+  name: uptime-serving-cert
   namespace: #@ data.values.namespace
 spec:
   dnsNames:
