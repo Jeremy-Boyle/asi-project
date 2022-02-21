@@ -30,8 +30,8 @@ spec:
             kind: Namespace
             metadata:
               labels:
-                kubernetes.io/metadata.name: gitlab
-              name: gitlab
+                kubernetes.io/metadata.name: gitlab-system
+              name: gitlab-system
             ---
       paths:
       - apps/gitlab-operator/manifests
