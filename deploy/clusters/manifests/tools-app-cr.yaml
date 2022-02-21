@@ -46,7 +46,7 @@ spec:
 
             #@overlay/match missing_ok=True
             worker_node:
-              replicas: 2
+              replicas: 3
 
             openstack:
               #@overlay/match missing_ok=True
