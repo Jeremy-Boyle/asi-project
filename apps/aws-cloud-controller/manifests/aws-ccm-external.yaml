@@ -52,7 +52,6 @@ kind: ServiceAccount
 metadata:
   namespace: kube-system
   name: cloud-controller-manager
-  namespace: kube-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
