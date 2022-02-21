@@ -21,6 +21,8 @@ spec:
       labels:
         app: ebs-csi-node
         app.kubernetes.io/name: aws-ebs-csi-driver
+      annotations:
+        iam.amazonaws.com/role: aws-ebs-node.pod.platform-ops.com
     spec:
       affinity:
         nodeAffinity:
