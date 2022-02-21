@@ -21,7 +21,7 @@ metadata:
         proxy_set_header   Upgrade $http_upgrade;
         proxy_cache_bypass $http_upgrade;
         }
-  name: ingress
+  name: uptime-kuma
   namepsace: #@ data.values.namespace
 spec:
   ingressClassName: nginx
