@@ -170,7 +170,7 @@ spec:
         #@overlay/match missing_ok=True
         extraArgs:
           #@overlay/match missing_ok=True
-          enable-admission-plugins: AlwaysPullImages,ServiceAccount,EventRateLimit,NamespaceLifecycle
+          enable-admission-plugins: ServiceAccount,EventRateLimit,NamespaceLifecycle
           #@overlay/match missing_ok=True
           admission-control-config-file: /etc/kubernetes/admission-control-config.yaml
           #@overlay/match missing_ok=True

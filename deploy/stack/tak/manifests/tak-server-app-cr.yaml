@@ -1,0 +1,33 @@
+apiVersion: kappctrl.k14s.io/v1alpha1
+kind: App
+metadata:
+  name: tak-server
+  namespace: aws
+spec:
+  cluster:
+    kubeconfigSecretRef:
+      name: tak-kubeconfig
+      key: value
+  syncPeriod: 5m
+  paused: false
+  fetch:
+  - git:
+      url: https://gitlab.create.army.mil/jeremy.t.boyle2.mil/TAK-Kubernetes/
+      ref: origin/master
+      secretRef:
+        name: create-token
+  template:
+  - ytt:
+      ignoreUnknownComments: true
+      inline:
+        pathsFrom:
+        - secretRef:
+            #! This is found in deploy/stack/tak/secrets/tak-secrets.platform-ops.sops.yaml
+            name: tak-ytt-values
+      paths:
+      - deploy/manifests
+  deploy:
+  - kapp:
+      rawOptions:
+      - --wait-timeout=5m
+      - --diff-changes=true

@@ -54,8 +54,8 @@ spec:
       network:
         devices:
         - dhcp4: true
-          networkName: VM Network
-      numCPUs: 3
+          networkName: #@ data.values.vsphere.network.name
+      numCPUs: 6
       resourcePool: #@ data.values.vsphere.server.resource_pool
       server: #@ data.values.vsphere.server.fqdn
       storagePolicyName: ""

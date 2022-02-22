@@ -1,0 +1,6 @@
+#@data/values
+---
+namespace: uptime-bot
+
+ingress:
+  fqdn: uptime.platform-ops.com

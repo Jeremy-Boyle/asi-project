@@ -1,7 +1,7 @@
 apiVersion: kappctrl.k14s.io/v1alpha1
 kind: App
 metadata:
-  name: tak-cluster
+  name: taticool-cluster
   namespace: kapp-controller
 spec:
   serviceAccountName: kapp-controller-clusteradmin
@@ -29,7 +29,7 @@ spec:
             #@data/values
             ---
             #@overlay/match missing_ok=True
-            cluster_name: tak
+            cluster_name: taticool
 
             #@overlay/match missing_ok=True
             create_ns: "False"
@@ -42,12 +42,16 @@ spec:
 
             #@overlay/match missing_ok=True
             control_plane:
-              endpoint: 192.168.1.99
+              endpoint: 192.168.1.86
               replicas: 1
 
             #@overlay/match missing_ok=True
             worker_node:
               replicas: 2
+
+            #@overlay/match missing_ok=True
+            image:
+              disk_size: 80
 
             vsphere:
               #@overlay/match missing_ok=True
@@ -65,7 +69,7 @@ spec:
 apiVersion: kappctrl.k14s.io/v1alpha1
 kind: App
 metadata:
-  name: tak-cluster-common-apps
+  name: taticool-cluster-common-apps
   namespace: kapp-controller
 spec:
   serviceAccountName: kapp-controller-clusteradmin
@@ -85,19 +89,19 @@ spec:
           00-values.yaml: |
             #@data/values
             ---
-            cluster_name: tak
+            cluster_name: taticool
             namespace: vsphere
           00-cluster-secret.yaml: |
             apiVersion: v1
             kind: Secret
             metadata:
-              name: tak-cluster-values
+              name: taticool-cluster-values
               namespace: vsphere
             stringData:
-              00-tak-cluster-values.yaml: |-
+              00-taticool-cluster-values.yaml: |-
                 #@data/values
                 ---
-                cluster_name: tak
+                cluster_name: taticool
       paths:
       - apps/common/vsphere
       - apps/common/shared

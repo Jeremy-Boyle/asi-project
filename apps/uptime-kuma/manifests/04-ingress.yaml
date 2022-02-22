@@ -1,0 +1,46 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: uptime-bot
+  namespace: #@ data.values.namespace
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: #@ data.values.ingress.fqdn
+    http:
+      paths:
+      - backend:
+          service:
+            name: uptime-bot
+            port:
+              number: 3001
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - #@ data.values.ingress.fqdn
+    secretName: uptime-service-cert
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: uptime-serving-cert
+  namespace: #@ data.values.namespace
+spec:
+  dnsNames:
+  - uptime.platform-ops.com
+  issuerRef:
+    kind: Issuer
+    name: uptime-selfsigned-issuer
+  secretName: uptime-service-cert
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: uptime-selfsigned-issuer
+  namespace: #@ data.values.namespace
+spec:
+  selfSigned: {}
+---

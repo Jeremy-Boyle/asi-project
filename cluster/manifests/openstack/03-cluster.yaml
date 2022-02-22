@@ -31,11 +31,12 @@ metadata:
   labels:
     cluster.x-k8s.io/cluster-name: #@ data.values.cluster_name
 spec:
-  allowAllInClusterTraffic: false
+  allowAllInClusterTraffic: true
   disableAPIServerFloatingIP: #@ data.values.openstack.network.disable_public_ip
   cloudName: openstack
   dnsNameservers:
-  - 8.8.8.8
+  - 1.1.1.1
+  - 1.0.0.1
   externalNetworkId: #@ data.values.openstack.network.id
   identityRef:
     kind: Secret
