@@ -10,7 +10,7 @@ spec:
   fetch:
   - git:
       url: https://github.com/Jeremy-Boyle/asi-project
-      ref: origin/dev
+      ref: origin/main
       secretRef:
         name: github-token
   template:
@@ -75,7 +75,7 @@ spec:
   fetch:
   - git:
       url: https://github.com/Jeremy-Boyle/asi-project
-      ref: origin/dev
+      ref: origin/main
       secretRef:
         name: github-token
   template:
@@ -109,7 +109,7 @@ spec:
   fetch:
   - git:
       url: https://github.com/Jeremy-Boyle/asi-project
-      ref: origin/dev
+      ref: origin/main
       secretRef:
         name: github-token
   template:
@@ -142,7 +142,7 @@ spec:
   fetch:
   - git:
       url: https://github.com/Jeremy-Boyle/asi-project
-      ref: origin/dev
+      ref: origin/main
       secretRef:
         name: github-token
   template:
