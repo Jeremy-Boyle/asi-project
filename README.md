@@ -146,7 +146,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Jeremy Boyle - [@JeremyBoyle](https://linkedin.com/in/jeremy-boyle) - jeremy.t.boyle2.mil@swf.army.mil
+Jeremy Boyle - [@JeremyBoyle](https://linkedin.com/in/jeremy-boyle) - jeremyboylet@gmail.com
 
 Project Link: [https://github.com/Jeremy-Boyle/asi-project](https://github.com/Jeremy-Boyle/asi-project)
 
